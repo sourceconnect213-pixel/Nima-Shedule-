@@ -1,15 +1,15 @@
 /* Generated from the app plan builder (core.js) — the same schedule + edits logic the app uses. */
-const START='2026-10-19', END='2026-11-30';
+const START='2026-11-17', END='2027-02-28';
 /* PLAN_V: bump whenever the plan builder changes task order, so ticks / edits saved for the old plan
    are not attached to different tasks of the new one (task ids are date-index). */
-const PLAN_V=4;
+const PLAN_V=5;
 const SUBJ={
   sft:{n:'SFT',c:'var(--sft)',full:'Science for Technology'},
   et:{n:'ET',c:'var(--et)',full:'Engineering Technology'},
   ict:{n:'ICT',c:'var(--ict)',full:'Information & Communication Technology'},
   dip:{n:'DIPLOMA',c:'var(--dip)',full:'Technology diploma'},
   hex:{n:'HEXORA',c:'var(--hex)',full:'Hexora site සහ apps'},
-  asg:{n:'ASSIGNMENT',c:'var(--asg)',full:'Diploma assignments (Mini Magazine ඇතුළුව)'},
+  asg:{n:'ASSIGNMENT',c:'var(--asg)',full:'Diploma assignments + deadlines'},
   rev:{n:'REVIEW',c:'var(--rev)',full:'Review'},
   mix:{n:'පන්ති',c:'var(--mix)',full:''}
 };
@@ -18,7 +18,7 @@ const DAYS=['ඉරිදා','සඳුදා','අඟහරුවාදා','�
 const DSH=['ඉරි','සඳු','අඟ','බදා','බ්‍රහ','සිකු','සෙන'];
 const MON={1:'ජන',2:'පෙබ',3:'මාර්',4:'අප්‍රේ',5:'මැයි',6:'ජූනි',7:'ජූලි',8:'අගෝ',9:'සැප්',10:'ඔක්',11:'නොවැ',12:'දෙසැ'};
 const MONF={1:'ජනවාරි',2:'පෙබරවාරි',3:'මාර්තු',4:'අප්‍රේල්',5:'මැයි',6:'ජූනි',7:'ජූලි',8:'අගෝස්තු',9:'සැප්තැම්බර්',10:'ඔක්තෝබර්',11:'නොවැම්බර්',12:'දෙසැම්බර්'};
-const DAYTYPE={1:['SFT දවස','sft'],2:['ICT දවස · පන්තිය','ict'],3:['ET දවස','et'],4:['Campus දවස · Diploma','dip'],5:['Buffer දවස · ICT + Diploma පන්තිය','mix'],6:['පන්ති දවස · ET + SFT','mix'],0:['App development · Assignments','hex']};
+const DAYTYPE={1:['SFT Backlog + Recording','sft'],2:['ICT + පන්ති','ict'],3:['ET + ICT Day Papers','et'],4:['Diploma Backlog + ICT Quiz','dip'],5:['Development 01 + Diploma','hex'],6:['ET / SFT / Diploma පන්ති','mix'],0:['Development 02 + Weekly Review','hex']};
 
 const isoAdd=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const dow=iso=>new Date(iso+'T00:00:00Z').getUTCDay();
@@ -31,192 +31,153 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 function mins(t,ap){let[h,m]=t.split(':').map(Number);if(ap==='pm'&&h<12)h+=12;if(ap==='am'&&h===12)h=0;return h*60+m}
 function todayISO(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Colombo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){return new Date().toISOString().slice(0,10)}}
 
-/* =====================================================================
-   PLAN v4 · ඔක් 19 → නොවැ 30
-   Wake 8:30 · sleep 1:00. Work 9:30 am – 11 pm in 3-hour blocks.
-   Mon SFT · Tue ICT (+class) · Wed ET · Thu Campus · Fri ICT + buffer + Diploma class ·
-   Sat ET/SFT classes + notes + Diploma class · Sun assignments + app development
-   Subject day: block 1 (9:30–12:30) පරණ වැඩ · block 2 (2–5) දැන් යන වැඩ · block 3 (7–9) papers / short notes
-   ===================================================================== */
-const O=(ti,d)=>({ti,d,bl:1});            // backlog (පරණ වැඩ)
-const N=(ti,d)=>({ti,d,k:'now'});          // current work (දැන් යන)
-const R=(ti,d,s)=>Object.assign({ti,d,k:'rev'},s?{s}:{});   // check / review
-const SFT_DAYS=[ // 7 Mondays: [block 1, block 2, block 3]
- [O('Unit 04 notes පොතේ සම්පූර්ණ කරන්න','පන්තියේ ඉගැන්නුව ඔක්කොම. මුලින් content එක, diagrams සහ පාට පස්සේ. Notes ඉවර නැතුව flash cards හදන්න බෑ, ඒ නිසා මේක මුලින්ම.'),
-  O('Unit 04 flash cards හදන්න (card 30–40)','Deadline සෙනසුරාදා (ඔක් 24). ඉස්සරහ ප්‍රශ්නය / පදය, පිටිපස්සේ උත්තරය / සූත්‍රය. එක පාට theme එකක් තියාගෙන අද card ඔක්කොම ලියන්න.'),
-  O('Flash cards ඉවර කරලා Unit 04 පාඩම් කරන්න','Cards වලින් තමන්ගෙන්ම ප්‍රශ්න අහන්න. Cards ඉතුරු නම් සිකුරාදා buffer එකේ ඉවර කරන්න, සෙනසුරාදා ගෙනියන්න ඕන. ප්‍රශ්න ටික SFT quiz app එකටත්.')],
- [O('Unit 04 tute සම්පූර්ණ කරන්න','ඉතුරු ප්‍රශ්න ඔක්කොම. බැරි ඒවා ලකුණු කරලා Tools → "ගුරුවරයාගෙන් අහන්න" එකට දාන්න.'),
-  N('Unit 01 / 03 tute (පන්තිය ගිය තැනට)','මූලික ගණිතය සහ පයිතගරස් සම්බන්ධය. සෙනසුරාදා ලියපු notes එක්ක කරන්න.'),
-  O('Unit 02 + 04 full paper: වැරදුණු ප්‍රශ්න ආයේ කරන්න','වැරදුණු ප්‍රශ්න විතරක්. Discuss කරපු උත්තර එක්ක check කරලා, වැරදුණේ ඇයි කියලා කෙටියෙන් ලියන්න.')],
- [O('Unit 02 tute ගණන් ඔක්කොම','හැම ගණනකම සූත්‍රය උඩින්ම ලියන්න. බැරි ඒවා ලකුණු කරලා පන්තියේ අහන්න.'),
-  N('Unit 01 short note + paper','පිටු 2–3: සූත්‍ර, definitions, ඒකක. ඊට පස්සේ වෙලාව තියාගෙන paper එක.'),
-  O('Unit 02 short note + definitions පාඩම් කරන්න','පිටු 2–3 උපරිම: සූත්‍ර, definitions, ඒකක, කලින් වැරදුණු තැන්.')],
- [O('Unit 02 පාඩම් paper එක (වෙලාව එක්ක) + විවරණය','වැරදුණු ඒවාට විවරණය ලියන්න. ලකුණු Tools → MCQ ලකුණු එකට දාන්න.'),
-  N('Unit 03 tute ඉතුරු ටික + short note'),
-  O('Unit 04 short note','Notes සහ flash cards වලින් වැදගත්ම ටික විතරක්.')],
- [O('Unit 04 පාඩම් paper එක (වෙලාව එක්ක) + විවරණය','වැරදුණු ඒවාට විවරණය ලියන්න. ලකුණු Tools → MCQ ලකුණු එකට දාන්න.'),
-  N('Unit 03 paper + විවරණය'),
-  O('Units 02 + 04: papers වල වැරදුණු ප්‍රශ්න revision','කලින් papers වල වැරදුණු ප්‍රශ්න ආයේ කරලා බලන්න.')],
- [O('Units 01–04 mixed paper (වෙලාව එක්ක)'),
-  N('අලුත් පාඩම: notes + tute (පන්තිය ගිය තැනට)'),
-  O('Mixed paper එකේ වැරදි විවරණය + දුර්වල කොටස්')],
- [O('SFT ඉතුරු පරණ වැඩ (ප්‍රගතිය tab එක බලලා)','ප්‍රගතිය tab එකේ SFT ලැයිස්තුවේ ඉතුරු ඒවා. ඔක්කොම ඉවර නම් flash cards revision.'),
-  N('අලුත් පාඩම: notes + tute (පන්තිය ගිය තැනට) · 2'),
-  R('අවසාන balance check: subjects ඔක්කොම','ප්‍රගතිය tab එකේ හැම subject එකක්ම බලලා ඉතුරු දේවල් ලියාගන්න. දෙසැම්බර් plan එකට ඒ ටික.','rev')]
-];
-const ET_DAYS=[ // 6 Wednesdays
- [O('ET full paper ආයේ කරන්න (වෙලාව එක්ක)','මේ දක්වා උගන්නපු පාඩම් වලින් දීපු paper එක. ඉවර වෙලා වැරදුණු ඒවා ලකුණු කරන්න.'),
-  N('Unit 06 (6.4 සිට) notes + tute, පන්තිය ගිය තැනට','6.1–6.3 දැනටමත් පාඩම් කරලා තියෙන නිසා කෙලින්ම 6.4න් පටන් ගන්න.'),
-  O('Full paper එකේ වැරදි විවරණය කරගන්න','හැම වැරදුණු ප්‍රශ්නයකටම නිවැරදි ක්‍රමය + වැරදුණේ ඇයි. වැඩිපුර වැරදුණු පාඩම් ලකුණු කරගන්න.')],
- [O('Unit 05 ගණන් පුරුදු වෙන්න','Tute + paper ගණන්. සූත්‍ර ලැයිස්තුවක් පැත්තකින් තියාගන්න.'),
-  N('Unit 06 (6.4 සිට) ගණන් + tute'),
-  O('Unit 06 (6.1–6.3) ගණන් පුරුදු වෙන්න')],
- [O('Unit 01 flash cards + revision','Cards හදන ගමන්ම පාඩම revise වෙනවා. ප්‍රශ්න ටික ET quiz app එකටත්.'),
-  N('Unit 06 දැන් යන කොටස: tute + paper ප්‍රශ්න'),
-  O('Unit 01 short note + paper')],
- [O('Unit 03 flash cards + revision'),
-  N('අලුත් පාඩම: notes + tute (පන්තිය ගිය තැනට)'),
-  O('Unit 03 short note + paper')],
- [O('Unit 05 flash cards + revision'),
-  N('Unit 06 flash cards + short note'),
-  O('Unit 05 short note + paper')],
- [O('Unit 06 paper + විවරණය'),
-  N('Units 01–06 mixed paper (වෙලාව එක්ක)'),
-  R('Mixed paper වැරදි + Balance check: ET','ප්‍රගතිය tab එකේ ET ලැයිස්තුවේ ඉතුරු දේවල් ලියාගන්න.')]
-];
-const ICT_Q=[ // Tuesday + Friday morning blocks, in date order
- O('Unit 03 notes සම්පූර්ණ කරන්න','දැනට උගන්නපු කොටස ඔක්කොම. Unit 03 ගණන් කරන්න කලින් මේක ඉවර වෙන්නම ඕන.'),
- O('Unit 03 ගණන් practice','Notes ඉවර නිසා දැන් ගණන් කරන්න පුළුවන්. බැරි ඒවා අඟහරුවාදා පන්තියේ අහන්න.'),
- O('Unit 01 + 02 full paper ආයේ කරලා වැරදි හදාගන්න','වැරදුණු ප්‍රශ්න විතරක් ආයේ කරන්න. ඒ විවරණය apps වලට.'),
- O('Past paper book: Unit 03 + විවරණ','Unit 03 notes සහ ගණන් ඉවර නිසා දැන් past paper ප්‍රශ්න.'),
- O('Unit 01 + 02 short notes','පිටු 2–3 බැගින්: definitions, වැදගත් කරුණු, MCQ වල වැරදුණු තැන්.'),
- O('Past paper book: Unit 04 + විවරණ'),
- O('Unit 01 + 02 flash cards + ICT quiz app එකට'),
- O('ICT recording 1 (ඉස්සරහ පාඩම) + notes','1.5–2x speed. Slides තියෙනවා නම් ඒවා පැත්තකින් තියාගෙන.'),
- O('ICT recording 2 + notes','1.5–2x speed.'),
- O('ICT recording 3 + notes','1.5–2x speed.'),
- N('Unit 03 short note + flash cards + ගණන් revision'),
- R('Units 01–03 mixed paper + Balance check: ICT','වෙලාව තියාගෙන. ඊට පස්සේ ප්‍රගතිය tab එකේ ICT ලැයිස්තුව බලන්න.')
-];
-const DIP_ASG=[ // Thursday 8–9 pm (campus written work)
- {s:'asg',k:'now',ti:'Diploma assignments ලැයිස්තුව + deadlines + Magazine පිටු වලට text (EN + SI)',d:'Mini Magazine ඇතුළුව ඔක්කොම deadlines ලියාගන්න. ඉරිදා කඩේ PC එකේ කරන්න ඕන ඒවා වෙනම ලකුණු කරන්න.'},
- {s:'asg',k:'now',ti:'Magazine: text සහ images ලෑස්ති කරන්න (ඉරිදා PC එකට)'},
- {s:'asg',k:'now',ti:'Magazine: group එකේ පිටු ආවද බලලා final text check'},
- {s:'asg',k:'now',ti:'Diploma assignments: written කොටස් (deadline ළඟම ඒවා)'},
- {s:'asg',k:'now',ti:'Diploma assignments: written කොටස් (deadline ළඟම ඒවා)'},
- {s:'asg',k:'now',ti:'Diploma assignments: ඉතුරු ඒවා ලැයිස්තුව + balance check'}
-];
-const SUN_ASG=[ // Sunday 9:30–12:30 at the shop PC
- {ti:'Magazine: පිටු 8 බෙදාගන්න + මගේ පිටු layout + design පටන් ගන්න',d:'කාටද මොන පිටුව කියලා group chat එකේ ලියන්න. Fonts සහ පාට ටිකත් එකඟ වෙන්න. ඊට පස්සේ Photoshop / Illustrator වලින් design පටන් ගන්න.'},
- {ti:'Magazine: මගේ පිටු design ඉවර කරලා group එකේ පිටු එකතු කරන්න',d:'Final file එක අද හදාගන්න. ඊළඟ ඉරිදා polish කරලා submit කරන්න විතරයි.'},
- {ti:'Magazine: final check, export, submit (අද deadline)',d:'උදේම export කරලා submit කරන්න. ඉතුරු වෙලාවේ deadline ළඟම අනිත් assignment එක.'},
- {ti:'Diploma assignments (deadline ළඟම ඒවා මුලින්)'},
- {ti:'Diploma assignments (deadline ළඟම ඒවා මුලින්)'},
- {ti:'Diploma assignments: ඉතුරු ඔක්කොම ඉවර කරන්න'}
-];
-const HEX_A=[ // Sunday 2–5 pm
- {ti:'Hexora site: team එකට කොටස් බෙදලා ඉතුරු වැඩ ලැයිස්තුව හදන්න',d:'උඹ කරන්නේ admin panel සහ quote calculator. අනිත් පිටු team එකට.'},
- {ti:'Hexora site: Services + Pricing පිටු (USD / LKR) review'},
- {ti:'Hexora site: Project request form + quote calculator'},
- {ti:'Hexora site: Admin panel (requests + quotes)'},
- {ti:'Hexora site: testing (phone + desktop) + Singlish text check + speed',d:'අද හවස launch කරනවා. Bugs ලැයිස්තුවක් හදලා පුළුවන් ඒවා දැන්ම හදන්න.'},
- {ti:'A/L Tech Notes app: screens plan + project setup',d:'උඹේ short notes තමා content එක. Coding ඊළඟ මාසෙ.'}
-];
-const HEX_B=[ // Sunday 6:30–8:30 pm
- {ti:'Quiz apps: papers ඉක්මනට දාන admin form එකක්',d:'Daily quiz / Day papers apps දෙකට ප්‍රශ්න ඉක්මනට දාන්න form එකක් හැදුවොත් හැමදාම විනාඩි 5න් වැඩේ ඉවරයි.'},
- {ti:'Hexora site: quote calculator logic + test'},
- {ti:'Hexora site: Admin panel: requests list + quotes'},
- {ti:'Hexora site: Admin panel ඉවර කරලා bugs හදන්න'},
- {ti:'Hexora site launch කරලා customersලාට link එක share කරන්න',d:'WhatsApp status / groups වලට link එක. Team එකට thanks!'},
- {ti:'ET / SFT quiz apps: flash card ප්‍රශ්න add + maintenance'}
-];
-const CLS_N=[5,5,5,4,4,4];   // old Day papers (class, 7 Q each) per Tuesday = 27
-const OLD_DQ=3;              // old Daily quiz papers (5 Q each) per night = 72 in 24 nights
-
-/* ---------- build plan ---------- */
-const BASE={}, ORDER=[];
+/* === Nima Schedule V5 · 2026-11-17 → 2027-02-28 === */
+const SFT_W=[
+'Unit 01 + 03 පරණ Recordings බලන්න|Unit 01 + 03 එකම Tute පිටු 24 Theory පාඩම් කරන්න|Unit 01 + 03 ගණන් පුහුණු වෙන්න',
+'Unit 01 + 03 Tute එකේ ගණන් සම්පූර්ණ කරන්න|Unit 01 + 03 ගණන් විසඳන App ප්‍රශ්න සකස් කරන්න|Unit 01 + 03 Flash Cards + Short Notes හදන්න',
+'Unit 02 මිනුම් උපකරණ Recording — පැය 2:15 බලන්න|Unit 02 Recording ඉතිරි විනාඩි 15 + Theory පිටු 1–18|Unit 02 Theory පිටු 19–37',
+'Unit 02 ගණන් පුහුණු වෙන්න|Unit 02 Question Book පළමු කොටස|Unit 02 Question Book සම්පූර්ණ කරන්න',
+'Unit 02 App Theory Questions + ගණන් කරන්න|Unit 02 වැරදුණු ගණන් නැවත පුහුණුව|Unit 02 Flash Cards + Short Notes',
+'Unit 04 සෛලීය සංවිධානයක් සහිත ජීවීන් Recording කොටස 1|Unit 04 Recording ඉතිරි කොටස + Theory පිටු 1–20|Unit 04 Theory පිටු 21–40',
+'Unit 04 Theory පිටු 41–60|Unit 04 Biology Theory Revision|Unit 04 Question Book පළමු කොටස',
+'Unit 04 Question Book සම්පූර්ණ කරන්න|Unit 04 Theory App එක හදන්න|Unit 04 App එකෙන් Theory ප්‍රශ්න කරන්න',
+'Unit 04 Flash Cards හදන්න|Unit 04 Short Notes හදන්න|Unit 01–04 Flash Cards Revision',
+'Unit 01 + 03 Full Paper එක ලියන්න|Unit 02 Full Paper + විවරණ|Unit 04 Full Paper + විවරණ',
+'SFT Units 01–04 Past Papers|SFT Unit 02 / 01 / 03 ගණන් Revision|SFT Flash Cards සහ Short Notes',
+'SFT Mixed Paper|SFT Mixed Paper වැරදි ප්‍රශ්න|SFT අලුත් Class Notes + Calculations',
+'SFT Past Papers Practice|SFT App Theory සහ ගණන්|SFT Short Notes Revision',
+'SFT Pending Backlog / Weak Areas|SFT අලුත් පාඩම් Tute + ගණන්|SFT Weekly Mixed Revision',
+'SFT Final Backlog Check|SFT Current Lesson Revision|SFT Weekly Paper'
+].map(s=>s.split('|'));
+const ET_W=[
+'Unit 06 ස්වයංචල තාක්ෂණවේදය Recording කොටස 1|Unit 06 පරණ Theory + Diagrams පාඩම් කරන්න|Unit 06 ගණන් පුහුණු වෙන්න',
+'Unit 06 Recording ඉතිරි කොටස|Unit 06 Theory + ගණන් App එකට දාන්න|Unit 06 Flash Cards + Short Notes',
+'Unit 06 ගණන් + Tute ප්‍රශ්න|Unit 06 App Theory + Calculations Practice|Unit 06 ඉතිරි පරණ වැඩ',
+'Unit 05 චලිතය හා ජව සම්ප්‍රේෂණ Recording|Unit 05 Theory + සූත්‍ර පාඩම්|Unit 05 ගණන් පුහුණුව',
+'Unit 05 ගණන් Question Book පළමු කොටස|Unit 05 ගණන් Question Book ඉතිරි කොටස|Unit 05 Theory + Calculations App එක හදන්න',
+'Unit 05 Short Notes + Flash Cards|Unit 03 සෞඛ්‍ය හා ආරක්ෂාව Recording|Unit 03 Theory පාඩම් කරන්න (App හදලා තියෙනවා)',
+'Unit 03 Short Notes + Flash Cards|Unit 01 ඉංජිනේරු තාක්ෂණවේදය හැඳින්වීම Recording|Unit 01 Theory පාඩම් කරන්න',
+'Unit 01 Short Notes + Flash Cards|Unit 01 Theory App එක හදන්න|Unit 02 සැලසුම් චිත්‍ර Recording කොටස 1',
+'Unit 02 Recording ඉතිරිය + Notes|Unit 02 Short Notes + Flash Cards|Unit 02 App එක හදන්න',
+'Unit 04 ගොඩනැගිලි තාක්ෂණවේදය Recording|Unit 04 Short Notes + Flash Cards|Unit 04 App එක හදන්න',
+'ET Units 01–06 Full Paper ලියන්න|ET Full Paper වැරදි විවරණ|ET Unit 05 / 06 ගණන් Revision',
+'ET Past Papers|ET App Theory + Calculations|ET Short Notes Revision',
+'ET Mixed Paper|ET Mixed Paper වැරදි විවරණ|ET Theory Flash Cards',
+'ET Unit 05 / 06 ගණන් පුහුණුව|ET App Questions / Past Papers|ET Unit 06 අලුත් Notes Revision',
+'ET Pending Backlog Check|ET Units 01–06 Full Revision|ET Weekly Paper'
+].map(s=>s.split('|'));
+const ICT_W=[
+'Lesson 01 Recording|Lesson 01 Theory පළමු කොටස',
+'Lesson 01 Theory ඉතිරි කොටස|Lesson 01 Short Notes + Flash Cards',
+'Lesson 01 App Theory Questions|Lesson 01 Full Paper + විවරණ',
+'Lesson 02 Recording|Lesson 02 Theory පළමු කොටස',
+'Lesson 02 Theory ඉතිරි කොටස|Lesson 02 Short Notes + Flash Cards',
+'Lesson 02 App Theory Questions|Lesson 02 Full Paper + විවරණ',
+'Lesson 03 Recording|Lesson 03 Theory + ගණන් පුහුණුව',
+'Lesson 03 Short Notes + Flash Cards|Lesson 03 Theory + Calculations App',
+'Lesson 03 Full Paper|Lesson 03 Past Paper Book',
+'Lesson 04 පරණ Recording|Lesson 04 පරණ Theory + ගණන්',
+'Lesson 04 Short Notes + Flash Cards|Lesson 04 App Theory + Calculations',
+'Lesson 04 Past Paper Book|Lesson 03 / 04 ගණන් Revision',
+'ICT Lessons 01–04 Past Papers|ICT App MCQ Practice',
+'ICT වැරදුණු MCQ / Weak Areas|ICT Short Notes + Flash Cards',
+'ICT Backlog Review|ICT Lessons 01–04 Mixed Paper'
+].map(s=>s.split('|'));
+const BASE={},ORDER=[];
 (function build(){
-  let sd=0,ed=0,iq=0,td=0,ti=0,sn=0,cls=0,dq=0;
-  const pc=(t,ap)=>{const p=t.split(':').map(Number);return p[0]*60+p[1]};
-  for(let iso=START;iso<=END;iso=isoAdd(iso,1)){
-    const w=dow(iso), wk=Math.floor(diff(START,iso)/7)+1, L=[];
-    /* every task is written in 24-hour time and stored as 12-hour pieces (t, e, ap, ap2) */
-    const P=(a,b,o)=>{const x=Object.assign({},o);x.k=x.k||(x.bl?'old':'now');
-      const A=pc(a),B=pc(b),p=(m)=>{const h=Math.floor(m/60)%24,mm=m%60;return {t:(h%12===0?12:h%12)+':'+String(mm).padStart(2,'0'),ap:h>=12?'pm':'am'}};
-      const s=p(A),e=p(B);x.t=s.t;x.ap=s.ap;x.e=e.t;x.ap2=e.ap===s.ap?'':e.ap;x.h=(B-A)/60;L.push(x);return x};
-    const REST=(a,b,ti)=>P(a,b,{s:'rev',k:'rest',fx:1,ti:ti||'විවේකය + කෑම'});
-    const B=(a,b,s,it)=>P(a,b,Object.assign({s},it));
-    const daily=late=>{
-      if(late){P('23:10','23:40',{s:'ict',k:'daily',ti:'රෑ 10 Daily quiz paper + විවරණය',d:'Diploma පන්තිය නිසා අද පරක්කුයි. අද paper එක විතරක්. ප්‍රශ්න 5. Daily quiz app එකට දාන්න.'});return}
-      P('22:00','22:30',{s:'ict',k:'daily',ti:'රෑ 10 Daily quiz paper + විවරණය',d:'ප්‍රශ්න 5. වැරදුණු / අනුමාන කරපු ප්‍රශ්න වලට විතරක් විවරණය. ඒකම Daily quiz app එකට දාන්න.'});
-      if(dq<72){const a=dq+1,b=Math.min(dq+OLD_DQ,72);dq=b;const c=b-a+1;
-        P('22:30','23:00',{s:'ict',bl:1,mc:{d:c},ti:'පරණ Daily quiz papers '+(a===b?'#'+a:'#'+a+'–#'+b),d:'ප්‍රශ්න '+(c*5)+'ක්. විවරණය ලියලා Daily quiz app එකට දාන්න.'})}
-    };
-    const subjDay=(s,day,last)=>{ // Mon / Wed template
-      B('09:30','12:30',s,day[0]);REST('12:30','14:00','දවල් කෑම + විවේකය');
-      B('14:00','17:00',s,day[1]);REST('17:00','19:00','විවේකය · ව්‍යායාම · නාන්න');
-      B('19:00','21:00',day[2].s||s,day[2]);REST('21:00','22:00','රෑ කෑම');daily(false)};
-    if(w===1){subjDay('sft',SFT_DAYS[Math.min(sd++,SFT_DAYS.length-1)])}
-    else if(w===3){subjDay('et',ET_DAYS[Math.min(ed++,ET_DAYS.length-1)])}
-    else if(w===2){ // ICT + class
-      const it=ICT_Q[Math.min(iq++,ICT_Q.length-1)];B('09:30','12:30','ict',it);
-      REST('12:30','14:15','දවල් කෑම + පන්තියට යන්න');
-      P('15:00','17:30',{s:'ict',k:'cls',fx:1,ti:'ICT පන්තිය',d:'Day paper එක (ප්‍රශ්න 7) පන්තියේදීම කරන්න.'});
-      REST('17:30','19:00','ගෙදර එන්න + විවේකය');
-      P('19:00','19:30',{s:'ict',k:'now',ti:'අද Day paper එකේ විවරණය',d:'වැරදුණු සහ අනුමාන කරපු ප්‍රශ්න වලට. ඒ ප්‍රශ්නම Day papers app එකට.'});
-      P('19:30','20:30',{s:'ict',k:'now',ti:'අද උගන්නපු කොටසේ notes සම්පූර්ණ කරන්න',d:'පන්තියේ දේ එදාම. එතකොට ICT වල අලුත් backlog එකක් හැදෙන්නේ නෑ.'});
-      const n=CLS_N[Math.min(td++,CLS_N.length-1)];
-      if(cls<27){const a=cls+1,b=Math.min(cls+n,27);cls=b;const c=b-a+1;
-        P('20:30','21:30',{s:'ict',bl:1,mc:{c},ti:'පරණ Day papers (පන්තියේ) #'+a+'–#'+b,d:'ප්‍රශ්න '+(c*7)+'ක්. ප්‍රශ්නයට විනාඩි 1–1.5ක්. වැරදුණු / අනුමාන කරපු ඒවාට විතරක් විවරණය, Day papers app එකට.'})}
-      else P('20:30','21:30',{s:'ict',k:'now',ti:'ICT: වැරදුණු MCQ ප්‍රශ්න revision',d:'පරණ Day papers ඔක්කොම ඉවරයි. විවරණ ලියපු ප්‍රශ්න ආයේ බලන්න.'});
-      REST('21:30','22:00','රෑ කෑම');daily(false);
+ let mon=0,tue=0,wed=0,dip=0,dayCount=0,dailyCount=0;
+ const minutes=s=>{const p=s.split(':').map(Number);return p[0]*60+p[1]};
+ for(let date=START;date<=END;date=isoAdd(date,1)){
+  const w=dow(date),wk=Math.floor(diff(START,date)/7)+1,L=[];
+  const add=(a,b,s,ti,k='now',extra={})=>{
+   const time=m=>{const h=Math.floor(m/60)%24;return {t:(h%12||12)+':'+String(m%60).padStart(2,'0'),ap:h>=12?'pm':'am'}};
+   const x=time(minutes(a)),y=time(minutes(b));L.push(Object.assign({s,ti,k,t:x.t,ap:x.ap,e:y.t,ap2:y.ap===x.ap?'':y.ap,h:(minutes(b)-minutes(a))/60},extra))};
+  const old=(a,b,s,ti,extra={})=>add(a,b,s,ti,'old',Object.assign({bl:1},extra));
+  const fixed=(a,b,s,ti)=>add(a,b,s,ti,'cls',{fx:1});
+  const rest=(a,b)=>add(a,b,'rev','කෑම / විවේකය','rest',{fx:1});
+  const buffer=(a,b)=>add(a,b,'rev','Buffer — මඟහැරුණු වැඩ','buf',{fx:1});
+  const daily=late=>add(late?'23:10':'22:00',late?'23:25':'22:20','ict',
+    'Daily Quiz #'+(110+diff(START,date))+' (MCQ 5) — Telegram පිළිතුරු + short explanation','daily');
+  if(w===1){
+    const a=SFT_W[Math.min(mon++,SFT_W.length-1)],k=mon<=10?'old':'rev';
+    add('10:00','12:15','sft',a[0],k,k==='old'?{bl:1}:{});
+    rest('12:15','13:15');
+    add('13:15','15:15','sft',a[1],k,k==='old'?{bl:1}:{});
+    add('15:30','16:30','sft',a[2],k,k==='old'?{bl:1}:{});
+    buffer('16:30','17:15');
+    add('19:00','21:00','sft','සිකුරාදා SFT Online Class Recording + Notes');daily(false);
+  }else if(w===2){
+    const a=ICT_W[Math.min(tue++,ICT_W.length-1)],k=tue<=12?'old':'rev';
+    add('10:00','12:15','ict',a[0],k,k==='old'?{bl:1}:{});
+    add('13:00','14:00','ict',a[1],k,k==='old'?{bl:1}:{});
+    rest('14:00','15:00');
+    fixed('15:00','17:00','ict','ICT Physical Class (Lesson 04) + Day Paper MCQ 10');
+    add('18:00','18:45','ict','අද Day Paper පිළිතුරු, ලකුණු සහ short explanations');
+    fixed('19:30','21:30','ict','ICT Online Class (Lesson 04)');daily(false);
+  }else if(w===3){
+    const a=ET_W[Math.min(wed++,ET_W.length-1)],k=wed<=11?'old':'rev';
+    add('10:00','12:15','et',a[0],k,k==='old'?{bl:1}:{});
+    rest('12:15','13:15');
+    add('13:15','15:15','et',a[1],k,k==='old'?{bl:1}:{});
+    add('15:30','16:30','et',a[2],k,k==='old'?{bl:1}:{});
+    buffer('16:30','17:15');
+    if(dayCount<33){const n=Math.min(3,33-dayCount),a=dayCount+1;dayCount+=n;
+      old('19:00','20:40','ict','පරණ Day Papers #'+a+'–#'+dayCount+' (MCQ 10 බැගින්, short explain)',{mc:{c:n}})}
+    else add('19:00','20:40','ict','ICT Past Day Paper වැරදි ප්‍රශ්න Revision','rev');
+    old('20:50','21:50','et','ET Online Class Recording — කොටස 1');daily(false);
+  }else if(w===4){
+    const n=dip++;
+    if(n<7){
+      old('10:00','12:30','dip','Diploma Lesson '+(n+1)+' Recording — පැය 2:30');
+      old('13:30','14:00','dip','Diploma Lesson '+(n+1)+' Recording — ඉතිරි විනාඩි 30');
+      old('14:00','15:30','dip','Diploma Lesson '+(n+1)+' Notes + පාඩම් + Short Notes');
+    }else{
+      add('10:00','12:30','dip','Diploma Lessons 01–07 Revision / Pending Recordings','rev');
+      add('13:30','14:00','dip','Diploma Short Notes Review','rev');
+      add('14:00','15:30','dip','Diploma පරණ පාඩම් Revision / Practice','rev');
     }
-    else if(w===4){ // Campus
-      const n=Math.min(ti+1,6),i=ti++;
-      B('09:30','12:30','dip',O('Diploma පාඩම '+n+': slides / PDF වලින් notes skeleton',(n===1?'පාඩම 1 = assignment එකට අදාළ පාඩම (Photoshop / Illustrator). ':'')+'Recording බලන්න කලින් slides වලින් headings සහ වැදගත් කරුණු ලියාගන්න. එතකොට recording එකේ බලන්න ඕන තැන් විතරක් පේනවා.'));
-      REST('12:30','14:00','දවල් කෑම + විවේකය');
-      B('14:00','17:00','dip',O('Diploma පාඩම '+n+': වැදගත් recordings (2x) + notes සම්පූර්ණ','Skeleton එකේ හිස් තැන් වලට අදාළ කොටස් විතරක් බලන්න. ඔක්කොම බලන්න ගියොත් ඉවර වෙන්නේ නෑ.'));
-      REST('17:00','19:00','විවේකය · ව්‍යායාම · නාන්න');
-      P('19:00','20:00',{s:'dip',k:'now',ti:i===0?'ගිය සිකු + සෙන Diploma පන්ති notes සම්පූර්ණ':'මේ සතියේ Diploma පන්ති notes (සිකු + සෙන)',d:'පන්තියේදී ලියාගත්ත කෙටි notes පිළිවෙළට.'});
-      P('20:00','21:00',DIP_ASG[Math.min(i,DIP_ASG.length-1)]);
-      REST('21:00','22:00','රෑ කෑම');daily(false);
-    }
-    else if(w===5){ // Friday: ICT block + buffer + Diploma class
-      const it=ICT_Q[Math.min(iq++,ICT_Q.length-1)];B('09:30','12:30','ict',it);
-      REST('12:30','14:00','දවල් කෑම + විවේකය');
-      P('14:00','17:00',{s:'rev',k:'buf',fx:1,ti:'Buffer: මේ සතියේ මඟ ඇරුණු වැඩ',
-        d:(iso==='2026-10-23'?'SFT Unit 04 flash cards ඉතුරු නම් මුලින්ම ඒවා. හෙට පන්තියට ගෙනියන්න ඕන. ':'')+'සතියේ මඟ ඇරුණු වැඩ "මාරු කරන්න" බොත්තමෙන් මෙතනට එනවා. කිසිම දෙයක් මඟ ඇරිලා නැත්නම් flash cards revision, past paper ප්‍රශ්න, නැත්නම් විවේකය.'});
-      REST('17:00','19:30','විවේකය · ව්‍යායාම · නාන්න');
-      P('20:00','23:00',{s:'dip',k:'cls',fx:1,ti:'Diploma පන්තිය (live)',d:'පන්තියේදීම කෙටි notes ලියාගන්න. බ්‍රහස්පතින්දා සම්පූර්ණ කරනවා.'});
-      daily(true);
-    }
-    else if(w===6){ // Saturday classes
-      P('07:30','09:30',{s:'et',k:'cls',fx:1,ti:'ET පන්තිය',d:'අද උදේ 6:30ට නැගිටින්න.'});
-      P('10:00','12:00',{s:'sft',k:'cls',fx:1,ti:'SFT පන්තිය',d:iso==='2026-10-24'?'Unit 04 flash cards අද ගෙනියන්න.':''});
-      REST('12:00','13:30','දවල් කෑම + විවේකය');
-      P('13:30','15:30',{s:'et',k:'now',ti:'අද ET පන්තියේ notes සම්පූර්ණ + tute',d:'පන්තියේ දේ එදාම. මේක කළොත් ET වල අලුත් backlog එකක් හැදෙන්නේ නෑ.'});
-      P('15:45','17:45',{s:'sft',k:'now',ti:'අද SFT පන්තියේ notes සම්පූර්ණ + tute',d:'පන්තිය ගිය තැනට. 5:45 – 8 හිස්: මඟ ඇරුණු පොඩි වැඩක් තියෙනවා නම් මෙතනට.'});
-      P('20:00','23:00',{s:'dip',k:'cls',fx:1,ti:'Diploma පන්තිය (live)'});
-      daily(true);
-    }
-    else if(w===0){ // Sunday: assignments (shop PC) + app development
-      const i=sn++;
-      const sa=SUN_ASG[Math.min(i,SUN_ASG.length-1)];
-      P('09:30','12:30',Object.assign({s:'asg',k:'now'},sa,{d:'කඩේ PC එකේ. '+(sa.d||'')}));
-      REST('12:30','14:00','දවල් කෑම + විවේකය');
-      P('14:00','17:00',Object.assign({s:'hex',k:'now'},HEX_A[Math.min(i,HEX_A.length-1)]));
-      REST('17:00','18:30','විවේකය');
-      P('18:30','20:30',Object.assign({s:'hex',k:'now'},HEX_B[Math.min(i,HEX_B.length-1)]));
-      P('20:30','21:15',{s:'rev',k:'rev',ti:'සතියේ review + ඊළඟ සතිය බලන්න',d:'ප්‍රගතිය tab එකේ මඟ ඇරුණු වැඩ බලලා "මාරු කරන්න" එකෙන් සිකුරාදා buffer එකට දාන්න.'});
-      REST('21:15','22:00','රෑ කෑම');daily(false);
-    }
-    L.forEach((t,i)=>{t.id=iso+'-'+i;t.date=iso;if(t.d==='')delete t.d});
-    BASE[iso]={iso,w,wk,tasks:L};ORDER.push(iso);
+    add('15:45','17:15','dip',n===0?'Lesson 08 Software Engineering ආරම්භය + notes':'Lesson 08 Software Engineering / Deadline Assignment');
+    if(dailyCount<106){const count=Math.min(5,106-dailyCount),a=dailyCount+1;dailyCount+=count;
+      old('19:00','20:30','ict','පරණ Daily Quiz #'+a+'–#'+dailyCount+' (MCQ 5, short explain)',{mc:{d:count}})}
+    else add('19:00','20:30','ict','පරණ Daily Quiz වැරදි MCQ Revision','rev');
+    old('20:45','21:45','et','ET Online Class Recording — කොටස 2');daily(false);
+  }else if(w===5){
+    add('10:00','12:30','hex','Development 01 — Hexora / Client Projects');
+    rest('12:30','13:30');
+    add('13:30','15:30','hex','Development 01 — Features / Backend / Integration');
+    add('15:45','17:15','hex','Development 01 — Testing, GitHub, Bug Fixing');
+    rest('17:15','18:45');
+    fixed('19:00','23:00','dip','Diploma Software Engineering Live Class');daily(true);
+  }else if(w===6){
+    fixed('07:00','09:30','et','ET Physical Class — Unit 06');
+    fixed('10:00','12:00','sft','SFT Physical Class — Unit 01 + 03 + MCQ 7');
+    rest('12:00','13:15');
+    add('13:15','14:15','et','ET අද උගන්වපු Theory + Class Notes');
+    add('14:15','15:15','et','ET අද ගණන් + App + Short Notes / Flash Cards');
+    add('15:30','16:30','sft','SFT අද උගන්වපු Theory + ගණන්');
+    add('16:30','17:15','sft','SFT අද ගණන් App එකට + Short Notes');
+    add('17:15','17:45','sft','SFT අද Flash Cards');
+    add('18:00','18:45','sft','SFT MCQ 7 විවරණ + ලකුණු; ලබන සතියේ discuss');
+    rest('18:45','20:00');
+    fixed('20:00','23:00','dip','Diploma Live Class (ET Online Recording Wed/Thu)');daily(true);
+  }else if(w===0){
+    add('10:00','12:30','hex','Development 02 — Personal Apps / A/L Tech Notes');
+    rest('12:30','13:30');
+    add('13:30','15:30','hex','Development 02 — SFT / ET / ICT Quiz Apps');
+    add('15:45','17:15','hex','Development 02 — Testing / GitHub / Bugs');
+    add('18:30','19:15','asg','Diploma Assignments + Lesson 08 Notes / Deadline Check');
+    if(dailyCount<106){const count=Math.min(5,106-dailyCount),a=dailyCount+1;dailyCount+=count;
+      old('19:15','20:45','ict','පරණ Daily Quiz #'+a+'–#'+dailyCount+' (MCQ 5, short explain)',{mc:{d:count}})}
+    else add('19:15','20:45','ict','ICT පරණ Daily Quiz වැරදි MCQ Revision','rev');
+    add('20:45','21:15','rev','Weekly Review + Pending Tasks ඊළඟ සතියට','rev');daily(false);
   }
+  L.forEach((t,i)=>{t.id=date+'-'+i;t.date=date});
+  BASE[date]={iso:date,w,wk,tasks:L};ORDER.push(date);
+ }
 })();
 
 /* ---------- day label ---------- */
-function dayKey(d){return d===END?['SFT දවස · අවසාන balance check','sft']:d==='2026-10-23'?['Buffer දවස · flash cards ඉවරද බලන්න','mix']:DAYTYPE[dow(d)]}
+function dayKey(d){return DAYTYPE[dow(d)]}
 
 /* ---------- time helpers (12-hour pieces <-> minutes) ---------- */
 const endMin=t=>{let a=mins(t.t,t.ap),b=mins(t.e,t.ap2||t.ap);if(b<=a)b+=720;if(b<=a)b+=720;return b};
