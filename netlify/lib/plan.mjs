@@ -1,5 +1,5 @@
 /* Generated from the app plan builder (core.js) — the same schedule + edits logic the app uses. */
-const START='2026-11-17', END='2027-02-28';
+const START='2026-11-18', END='2027-02-28';
 /* PLAN_V: bump whenever the plan builder changes task order, so ticks / edits saved for the old plan
    are not attached to different tasks of the new one (task ids are date-index). */
 const PLAN_V=5;
@@ -31,7 +31,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 function mins(t,ap){let[h,m]=t.split(':').map(Number);if(ap==='pm'&&h<12)h+=12;if(ap==='am'&&h===12)h=0;return h*60+m}
 function todayISO(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Colombo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){return new Date().toISOString().slice(0,10)}}
 
-/* === Nima Schedule V5 · 2026-11-17 → 2027-02-28 === */
+/* === Nima Schedule V5 · 2026-11-18 → 2027-02-28 === */
 const SFT_W=[
 'Unit 01 + 03 පරණ Recordings බලන්න|Unit 01 + 03 එකම Tute පිටු 24 Theory පාඩම් කරන්න|Unit 01 + 03 ගණන් පුහුණු වෙන්න',
 'Unit 01 + 03 Tute එකේ ගණන් සම්පූර්ණ කරන්න|Unit 01 + 03 ගණන් විසඳන App ප්‍රශ්න සකස් කරන්න|Unit 01 + 03 Flash Cards + Short Notes හදන්න',
