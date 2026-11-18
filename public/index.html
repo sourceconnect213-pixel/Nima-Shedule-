@@ -377,6 +377,11 @@ button,.sd,.nb{touch-action:manipulation;-webkit-tap-highlight-color:transparent
 .cdel:hover{opacity:1;background:var(--surface-2)}
 .cadd{display:flex;gap:8px;margin-top:8px}
 .fhint{margin:10px 2px 0!important;font-size:12px}
+.crow.asking{background:color-mix(in srgb,var(--warn) 7%,transparent);border-radius:10px}
+.cconf{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:4px 0 6px;padding:10px 12px;border-radius:14px;font-size:13px;line-height:1.5;
+  background:color-mix(in srgb,var(--warn) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line));animation:rise .3s var(--ease) both}
+.cconf>span:first-child{flex:1 1 180px;min-width:0}.cconf b{font-weight:700}
+.cc-b{display:flex;gap:8px;margin-left:auto}.cc-b .btn svg{width:15px;height:15px}
 .cplay{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,var(--c,var(--accent)),var(--c2,var(--accent)));
   box-shadow:0 6px 16px -8px var(--c,var(--accent));transition:transform .25s var(--spring)}
 .cplay svg{width:15px;height:15px;margin-left:2px}.cplay:active{transform:scale(.9)}
@@ -1369,6 +1374,19 @@ function ctoggle(id,btn){const on=!state.cd[id];
     if(host){host.classList.remove('pop');void host.offsetWidth;host.classList.add('pop')}setTimeout(()=>{node.remove();host&&host.classList.remove('pop')},760)}
   refresh();streakPulse();
   clearTimeout(ctT);ctT=setTimeout(()=>{if(fdId)repaintFolder();else if(!document.querySelector('.cadd input:focus'))render(true)},1100)}
+/* × (or "remove this lesson") first asks: ඔව් removes, නෑ / 6 s / tapping elsewhere keeps it */
+let delT=null;
+function closeDelAsk(){clearTimeout(delT);document.querySelectorAll('.cconf').forEach(x=>x.remove());document.querySelectorAll('.crow.asking').forEach(x=>x.classList.remove('asking'))}
+function askDel(btn){const id=btn.dataset.cdel,row=btn.closest('.crow'),anchor=row||btn;
+  const open=document.querySelector('.cconf');if(open&&open.dataset.for===id){closeDelAsk();return}closeDelAsk();
+  const L=lessonOf(id),t=L?null:allCurTasks().find(x=>x.id===id);
+  const el=document.createElement('div');el.className='cconf';el.dataset.for=id;el.setAttribute('role','alert');
+  el.innerHTML=`<span>${L?`<b>${esc(L.n)}</b> පාඩමයි ඒකේ වැඩ ${L.tasks.length}යි ඉවත් කරන්නද?`:`<b>${esc(t?t.ti:'')}</b> ඉවත් කරන්නද?`}</span>
+    <span class="cc-b"><button class="btn sm" data-cdn>නෑ</button><button class="btn sm dng" data-cdy="${id}">${IC.trash}ඔව්, ඉවත් කරන්න</button></span>`;
+  anchor.insertAdjacentElement('afterend',el);if(row)row.classList.add('asking');vib(10);
+  try{el.scrollIntoView({block:'nearest'})}catch(e){}
+  delT=setTimeout(closeDelAsk,6000)}
+document.addEventListener('pointerdown',e=>{if(document.querySelector('.cconf')&&!e.target.closest('.cconf,[data-cdel]'))closeDelAsk()},true);
 function cdel(id){const L=lessonOf(id),j=JSON.stringify({cx:state.cx,ch:state.ch});
   const undo=()=>{const o=JSON.parse(j);state.cx=o.cx;state.ch=o.ch;changed(false);if(fdId)repaintFolder();else render(true)};
   if(L){if(L.cu){state.cx.l=state.cx.l.filter(x=>x.id!==id);state.cx.t=state.cx.t.filter(x=>x.l!==id)}else state.ch[id]=1;
@@ -1721,7 +1739,9 @@ document.addEventListener('click',e=>{
   const ac=e.target.closest('[data-act]');if(ac&&!ac.disabled){const f=ACT[ac.dataset.act];if(f){f(ac,e);return}}
   const cc=e.target.closest('.chk[data-cid]');if(cc){if(!cc.disabled)ctoggle(cc.dataset.cid,cc);return}
   const fo=e.target.closest('.frow[data-fold]');if(fo){openFolder(fo.dataset.fold);return}
-  const cdl=e.target.closest('[data-cdel]');if(cdl){cdel(cdl.dataset.cdel);return}
+  const cdy=e.target.closest('[data-cdy]');if(cdy){const id=cdy.dataset.cdy;closeDelAsk();cdel(id);return}
+  const cdn=e.target.closest('[data-cdn]');if(cdn){closeDelAsk();return}
+  const cdl=e.target.closest('[data-cdel]');if(cdl){askDel(cdl);return}
   const c=e.target.closest('.chk[data-id]');if(c){toggle(c.dataset.id,c);return}
   const tk=e.target.closest('#view [data-tid]');if(tk&&!e.target.closest('.when')){openTask(tk.dataset.tid);return}
   const tb=e.target.closest('[data-tab]');if(tb){go(tb.dataset.tab);return}
