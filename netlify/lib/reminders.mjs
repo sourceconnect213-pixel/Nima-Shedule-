@@ -15,6 +15,8 @@ export const planOf = rec => freshRec(rec)
   ? makePlan({ edits: rec.edits, hidden: rec.hidden, custom: rec.custom }).PLAN
   : makePlan({ custom: (rec && rec.custom || []).filter(c => c && c.date >= START && c.date <= END) }).PLAN;
 export const doneOf = rec => new Set(freshRec(rec) ? (rec.done || []) : []);
+/* lesson-folder ticks per day (they count toward the day and the streak) */
+export const cdnOf = rec => (rec && rec.cdn && typeof rec.cdn === 'object') ? rec.cdn : {};
 /** When the morning summary goes out today: 8:40, or 50 minutes before the first timed task if that is earlier. */
 export function amMinFor(PLAN, today) {
   const P = PLAN && PLAN[today];
@@ -71,19 +73,22 @@ export function summaryPayload(kind, nowMs, PLAN, rec) {
     const work = P.tasks.filter(t => !t.fx && t.k !== 'rest');
     const first = work.find(t => !done.has(t.id)) || work[0];
     const cls = P.tasks.filter(t => t.k === 'cls');
-    const sk = streakInfo(PLAN, doneObj, today);
-    const parts = [`වැඩ ${work.length}ක් · පැය ${hrs(P.tasks.filter(t => t.k !== 'rest').reduce((a, t) => a + t.h, 0))}ක්`];
-    if (first) parts.push(`පළමුවෙන්: ${first.t} ${AP[first.ap] || ''} ${first.ti}`);
+    const sk = streakInfo(PLAN, doneObj, today, cdnOf(rec));
+    const parts = [`වැඩ ${work.length}ක්` + (cls.length ? ` · Live පන්ති ${cls.length}` : '')];
+    if (cls[0]) parts.push(`පන්තිය: ${cls[0].t} ${AP[cls[0].ap] || ''} ${cls[0].ti}`);
+    else if (first) parts.push(`පළමුවෙන්: ${first.ti}`);
     if (cls.length && open) parts.push(`ගුරුවරයාගෙන් අහන්න ප්‍රශ්න ${open}ක් තියෙනවා`);
     if (sk.cur) parts.push(`🔥 ${sk.cur}`);
     return { title: `සුභ උදෑසනක් · ${dayKey(today)[0]}`, body: parts.join(' · '), tag: 'nima-am', url: '/?tab=today' };
   }
-  const st = PLAN[today] ? dayStat(PLAN, today, doneObj) : { n: 0, a: 0, p: 0 };
-  const sk = streakInfo(PLAN, doneObj, today);
+  const st = PLAN[today] ? dayStat(PLAN, today, doneObj, cdnOf(rec)) : { n: 0, a: 0, p: 0 };
+  const sk = streakInfo(PLAN, doneObj, today, cdnOf(rec));
   const tm = isoAdd(today, 1), TP = PLAN[tm];
   const nxt = TP && TP.tasks.find(t => !t.fx && t.k !== 'rest');
   const parts = [`අද ${st.a}/${st.n} ඉවරයි (${Math.round(st.p * 100)}%)`];
   if (sk.cur) parts.push(`🔥 ${sk.cur} දවස් පිට පිට`);
-  if (nxt) parts.push(`හෙට: ${nxt.t} ${AP[nxt.ap] || ''} ${nxt.ti}`);
+  const ncls = TP && TP.tasks.find(t => t.k === 'cls');
+  if (ncls) parts.push(`හෙට පන්තිය: ${ncls.t} ${AP[ncls.ap] || ''} ${ncls.ti}`);
+  else if (nxt) parts.push(`හෙට: ${dayKey(tm)[0]}`);
   return { title: st.p >= 0.6 ? 'අද දවස නියමයි 👏' : 'අද දවස ඉවර වෙන්න ළඟයි', body: parts.join(' · '), tag: 'nima-pm', url: '/?tab=progress' };
 }

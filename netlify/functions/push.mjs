@@ -46,6 +46,7 @@ export default async (req) => {
     const rec = {
       sub, done, updated: Date.now(),
       pv: Number.isFinite(c.pv) ? c.pv : (existing.pv || 0),
+      cdn: lim(obj(c.cdn), existing.cdn || {}),
       edits: lim(obj(c.edits), existing.edits || {}),
       hidden: lim(obj(c.hidden), existing.hidden || {}),
       custom: lim(Array.isArray(c.custom) ? c.custom : null, existing.custom || []),
