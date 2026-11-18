@@ -1,5 +1,5 @@
 /* Generated from the app plan builder (core.js) — the same schedule + edits logic the app uses. */
-const START='2026-11-18', END='2027-02-28';
+const START='2026-11-19', END='2027-02-28';
 /* PLAN_V: bump whenever the plan builder changes task order, so ticks / edits saved for the old plan
    are not attached to different tasks of the new one (task ids are date-index). */
 const PLAN_V=6;
@@ -31,7 +31,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 function mins(t,ap){let[h,m]=t.split(':').map(Number);if(ap==='pm'&&h<12)h+=12;if(ap==='am'&&h===12)h=0;return h*60+m}
 function todayISO(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Colombo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){return new Date().toISOString().slice(0,10)}}
 
-/* === Nima Schedule V6 · 2026-11-18 → 2027-02-28 ===
+/* === Nima Schedule V6 · 2026-11-19 → 2027-02-28 ===
    Live classes are the only things with a time. Weekly date-bound work (class recordings, Day Paper review,
    Development, assignments, the Daily Quiz) has no time. Lesson work is not in here: it lives in the subject
    folders and is done in order, at the person's own pace, on that subject's day. */

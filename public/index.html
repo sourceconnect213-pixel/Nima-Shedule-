@@ -400,6 +400,8 @@ button,.sd,.nb{touch-action:manipulation;-webkit-tap-highlight-color:transparent
 .fsec.locked .folds,.fsec.locked .frows{opacity:.5;filter:grayscale(.4)}
 .fsec.locked .frow{cursor:not-allowed}
 .qsec .frows{padding:0}
+.tgt .fs-h{margin-bottom:8px}.tgt .tgv{margin-left:auto;font-family:var(--f-display);font-size:20px;color:var(--c);font-variant-numeric:tabular-nums;flex:none}
+.tgt>.gbar{display:block;height:7px;margin:0 0 8px}.tgt .frows{padding:0}
 .lockc{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;background:color-mix(in srgb,var(--warn) 10%,var(--surface));border:1px dashed color-mix(in srgb,var(--warn) 55%,var(--line));margin-bottom:4px}
 .lockc .lk{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none;color:#fff;background:linear-gradient(140deg,var(--warn),#F97316)}
 .lockc .lk svg{width:18px;height:18px}
@@ -909,7 +911,7 @@ img{max-width:100%}
 <path class="lg-chk" d="M37 55l7 7 15-15" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 <circle class="lg-dot" cx="80" cy="16" r="6" fill="#FBBF24"/></svg></div>
     <h1 class="sp-name"><span style="--i:0">N</span><span style="--i:1">i</span><span style="--i:2">m</span><span style="--i:3">a</span><span class="sp" style="--i:4"> </span><span class="g" style="--i:5">S</span><span class="g" style="--i:6">c</span><span class="g" style="--i:7">h</span><span class="g" style="--i:8">e</span><span class="g" style="--i:9">d</span><span class="g" style="--i:10">u</span><span class="g" style="--i:11">l</span><span class="g" style="--i:12">e</span></h1>
-    <p class="sp-tag">V6 · නොවැ 18 → පෙබ 28 · පාඩම් folders</p>
+    <p class="sp-tag">V6 · නොවැ 19 → පෙබ 28 · පාඩම් folders</p>
     <div class="sp-bar"><i></i></div>
   </div>
   <span class="sp-skip">Tap කරලා skip කරන්න</span>
@@ -923,7 +925,7 @@ img{max-width:100%}
 <rect class="lg-hi" x="4" y="4" width="88" height="44" rx="26" fill="#fff" opacity=".12"/>
 <path class="lg-cal" d="M26 34a6 6 0 0 1 6-6h32a6 6 0 0 1 6 6v30a6 6 0 0 1-6 6H32a6 6 0 0 1-6-6zM26 41h44M38 22v11M58 22v11" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 <path class="lg-chk" d="M37 55l7 7 15-15" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-<circle class="lg-dot" cx="80" cy="16" r="6" fill="#FBBF24"/></svg></span><span class="fade"><b>Nima Schedule</b><small>නොවැ 18 → පෙබ 28</small></span></div>
+<circle class="lg-dot" cx="80" cy="16" r="6" fill="#FBBF24"/></svg></span><span class="fade"><b>Nima Schedule</b><small>නොවැ 19 → පෙබ 28</small></span></div>
     <nav class="snav" id="snav"><span class="sind" id="sind"></span></nav>
     <div class="sfoot">
       <div class="daysleft"><b id="dleft">–</b><span class="fade">V6 අවසානයට දින</span></div>
@@ -964,7 +966,7 @@ img{max-width:100%}
 
 <script>
 (function(){
-const START='2026-11-18', END='2027-02-28';
+const START='2026-11-19', END='2027-02-28';
 /* PLAN_V: bump whenever the plan builder changes task order, so ticks / edits saved for the old plan
    are not attached to different tasks of the new one (task ids are date-index). */
 const PLAN_V=6;
@@ -996,7 +998,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 function mins(t,ap){let[h,m]=t.split(':').map(Number);if(ap==='pm'&&h<12)h+=12;if(ap==='am'&&h===12)h=0;return h*60+m}
 function todayISO(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Colombo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){return new Date().toISOString().slice(0,10)}}
 
-/* === Nima Schedule V6 · 2026-11-18 → 2027-02-28 ===
+/* === Nima Schedule V6 · 2026-11-19 → 2027-02-28 ===
    Live classes are the only things with a time. Weekly date-bound work (class recordings, Day Paper review,
    Development, assignments, the Daily Quiz) has no time. Lesson work is not in here: it lives in the subject
    folders and is done in order, at the person's own pace, on that subject's day. */
@@ -1378,10 +1380,32 @@ function foldersHTML(s,tag,o){o=o||{};const S=SUBJ[s],Ls=curOf(s).filter(L=>!tag
     ${o.locked?'':`<button class="btn sm fadd" data-act="addlesson" data-s="${s}">${IC.plus}අලුත් පාඩමක් add කරන්න</button>`}
   </section>`}
 /* one lesson task as a tickable row */
-function crowHTML(t,o){o=o||{};const dn=state.cd[t.id];
+function crowHTML(t,o){o=o||{};const dn=state.cd[t.id];/* o.hint: small line under an unfinished task */
   return `<div class="crow ${dn?'done':''}" data-cid="${t.id}">${chkC(t.id,dn).replace('<button class="chk"',o.locked?'<button disabled class="chk"':'<button class="chk"')}
     <span class="ct"><span>${esc(t.ti)}</span>${dn?`<small>${typeof dn==='string'?fmt(dn)+' ':''}ඉවර කළා</small>`:o.hint?`<small class="nxl">${o.hint}</small>`:''}</span>
     ${o.nodel?'':`<button class="cdel" data-cdel="${t.id}" aria-label="ඉවත් කරන්න">${IC.x.replace('<svg','<svg width="15" height="15"')}</button>`}</div>`}
+/* the day's share of a subject's lesson work: what is left at the start of that day, spread evenly over that
+   subject's days still to come (that day included). Done-that-day tasks + the next unfinished ones up to the target. */
+function lessonDays(s){return [1,2,3,4,5,6,0].filter(w=>(DAYFOLD[w]||[]).some(f=>f[0]===s&&f[1]==='L'))}
+function dayTarget(s,iso){const T=curTasks(s,'L'),wd=lessonDays(s);
+  const rem=T.filter(t=>!state.cd[t.id]||state.cd[t.id]>=iso).length;
+  let days=0;for(let d=iso;d<=END;d=isoAdd(d,1))if(wd.includes(dow(d)))days++;
+  const n=days?Math.ceil(rem/days):rem;
+  const today=clampDay(todayISO()),doneThat=T.filter(t=>state.cd[t.id]===iso);
+  let list=doneThat.slice();
+  if(iso>=today){const undone=T.filter(t=>!state.cd[t.id]);
+    let skip=0;if(iso>today){for(let d=today;d<iso;d=isoAdd(d,1))if(wd.includes(dow(d)))skip+=d===today?Math.max(0,n-T.filter(t=>state.cd[t.id]===today).length):n}
+    list=list.concat(undone.slice(skip,skip+Math.max(0,n-doneThat.length)))}
+  return {n,done:doneThat.length,list,rem,days}}
+function targetHTML(s,iso,i){const S=SUBJ[s],g=dayTarget(s,iso);if(!g.rem&&!g.done)return '';
+  const past=iso<clampDay(todayISO()),p=g.n?Math.min(100,Math.round(g.done/g.n*100)):100;
+  return `<section class="fsec tgt stag" style="--i:${i};--c:${S.c};--c2:${S.c2}">
+    <div class="fs-h"><span class="ico">${IC.focus}</span><div><h3>${past?'මේ දවසේ ඉලක්කය':iso===clampDay(todayISO())?'අද ඉලක්කය':fmt(iso)+' ඉලක්කය'} · ${S.n} වැඩ ${g.n}ක්</h3>
+      <small>${g.done>=g.n&&g.n?'✓ ඉලක්කය ඉවරයි. තව කරන්න පුළුවන් නම් folders වලින් කරන්න':`ඉතුරු වැඩ ${g.rem} ÷ ${S.n} දවස් ${g.days} = දවසට ${g.n}`}</small></div>
+      <b class="tgv">${g.done}/${g.n}</b></div>
+    <span class="gbar"><i style="width:${p}%"></i></span>
+    <div class="frows">${g.list.map(t=>{const L=lessonOf(t.l);return crowHTML(t,{nodel:1,hint:L?L.n:''})}).join('')||'<p class="hint fempty">පාඩම් වැඩ ඔක්කොම ඉවරයි 🎉</p>'}</div>
+  </section>`}
 /* inside a folder */
 let fdId=null;
 function folderBody(L){const nt=L.tasks.find(t=>!state.cd[t.id]);
@@ -1482,7 +1506,7 @@ function oldWorkHTML(iso,work,folds,i){
   ${quota.length?`<section class="fsec qsec stag" style="--i:${i++};--c:${SUBJ.ict.c};--c2:${SUBJ.ict.c2}">
     <div class="fs-h"><span class="ico">${IC.daily}</span><div><h3>අද කරන්න ඕන පරණ Papers</h3><small>${quota.map(q=>q.tag==='dp'?'Day Papers':'Daily Quiz').filter((x,k,a)=>a.indexOf(x)===k).join(' + ')} · මේ ටික අදම ඉවර කරන්න</small></div></div>
     <div class="frows">${quota.map(({t})=>crowHTML(t,{nodel:1,hint:'අදම ඉවර කරන්න'})).join('')}</div></section>`:''}
-  ${lessons.map(([s])=>foldersHTML(s,'L',{i:i++})).join('')}`;
+  ${lessons.map(([s])=>targetHTML(s,iso,i++)+foldersHTML(s,'L',{i:i++})).join('')}`;
 }
 function dayActionsHTML(iso,work){const open=work.filter(t=>!state.done[t.id]).length;
   return `<div class="dact stag" style="--i:1"><button class="btn" data-act="add" data-date="${iso}">${IC.plus}වැඩක් add කරන්න</button>
@@ -1495,7 +1519,7 @@ function viewWeek(){
       ${P.tasks.filter(t=>t.k!=='rest').map(t=>{const dn=!!state.done[t.id];return `<div class="mini ${dn?'done':''} ${t.fx?'fixed':''}" data-tid="${t.id}" style="--c:${SUBJ[t.s].c};--c2:${SUBJ[t.s].c2}">
         <span class="tmn">${t.t||''}</span><span class="tx"><i></i><span>${esc(t.ti)}</span>${t.mv?' <span class="nt">↷</span>':''}${state.notes[t.id]?' <span class="nt">📝</span>':''}</span>${chkBtn(t,dn)}</div>`}).join('')}
       ${(DAYFOLD[dow(d)]||[]).map(([s,tag])=>{const L=curOf(s).filter(x=>x.tag===tag),nx=L.find(x=>x.tasks.some(t=>!state.cd[t.id]));
-        return `<div class="mini fsum" data-open="${d}" style="--c:${SUBJ[s].c};--c2:${SUBJ[s].c2}"><span class="tmn">${IC.folder.replace('<svg','<svg width="15" height="15"')}</span><span class="tx"><i></i><span>${tag==='L'?SUBJ[s].n+' පාඩම් · <b data-frac="cs:'+s+':L">0/0</b>'+(nx?' · '+esc(nx.n):''):esc((dayQuota(d,tag)[0]||{ti:L[0]?L[0].n+' ඉවරයි':''}).ti)}</span></span></div>`}).join('')}
+        return `<div class="mini fsum" data-open="${d}" style="--c:${SUBJ[s].c};--c2:${SUBJ[s].c2}"><span class="tmn">${IC.folder.replace('<svg','<svg width="15" height="15"')}</span><span class="tx"><i></i><span>${tag==='L'?SUBJ[s].n+' පාඩම් · අදට වැඩ '+dayTarget(s,d).n+'ක් · <b data-frac="cs:'+s+':L">0/0</b>':esc((dayQuota(d,tag)[0]||{ti:L[0]?L[0].n+' ඉවරයි':''}).ti)}</span></span></div>`}).join('')}
       <button class="open" data-open="${d}">මේ දවස විවෘත කරන්න →</button></article>`}
   const first=weekStart(START),last=weekStart(END),wn=Math.floor(diff(first,ws)/7)+1;
   return `<div class="wkhead stag" style="--i:0">
@@ -1526,7 +1550,7 @@ function viewProgress(){
   const folders=CSUBJ.map((s,i)=>foldersHTML(s,null,{closed:true,i:i+3})).join('');
   return `
   <section class="phero stag" style="--i:0">
-    <div><div class="eyebrow" style="color:#AEB4DA">නොවැ 18 → පෙබ 28 · V6</div>
+    <div><div class="eyebrow" style="color:#AEB4DA">නොවැ 19 → පෙබ 28 · V6</div>
       <h2><em>පාඩම් folders</em> · Live පන්තිවලට විතරයි වෙලාව.</h2></div>
     <div class="stats">
       <div class="stat"><b data-num="time">0</b><span>V6 අවසානයට දින</span><div class="sbar"><i data-bar="time" style="width:0"></i></div></div>
@@ -1560,7 +1584,7 @@ function viewRules(){
  '<li><b>Subject දවස්.</b><span>සඳුදා SFT · අඟහරුවාදා ICT · බදාදා ET + ICT Day Papers · බ්‍රහස්පතින්දා Diploma + ICT Daily Quiz · ඉරිදා ICT Daily Quiz.</span></li>'+
  '<li><b>Development දවස් 2ක්.</b><span>සිකුරාදා සහ ඉරිදා. දවස් දෙක එක ළඟ නැහැ.</span></li>'+
  '<li><b>පන්ති වැඩ එදාම.</b><span>සෙනසුරාදා ET / SFT Theory, ගණන්, App, Short Notes, Flash Cards සහ SFT MCQ 7 විවරණ.</span></li>'+
- '<li><b>ICT Papers.</b><span>පරණ Day Papers 33 (MCQ 10) සහ පරණ Daily Quiz 106 (MCQ 5) folders වල. අලුත් Daily Quiz හැමදාම — #110 (නොවැ 18) සිට.</span></li>'+
+ '<li><b>ICT Papers.</b><span>පරණ Day Papers 33 (MCQ 10) සහ පරණ Daily Quiz 106 (MCQ 5) folders වල. අලුත් Daily Quiz හැමදාම — #110 (නොවැ 19) සිට.</span></li>'+
  '<li><b>Recordings.</b><span>සිකුරාදා SFT Online class → සඳුදා; සෙනසුරාදා ET Online class → බදාදා / බ්‍රහස්පතින්දා.</span></li>'+
  '<li><b>ඔයාගේම පාඩම් / වැඩ.</b><span>Folder එකක් ඇතුළේ "වැඩක් add කරන්න", නැත්නම් "අලුත් පාඩමක් add කරන්න". ඕන නැති වැඩ × ඔබලා ඉවත් කරන්න.</span></li>'+
  '</ol></section><section class="card stag"><h3>සාමාන්‍ය සතියක Live පන්ති පැය</h3><div class="hours">'+hrows+'</div></section></div>'+
