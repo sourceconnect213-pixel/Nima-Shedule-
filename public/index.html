@@ -231,8 +231,8 @@ button,.sd,.nb{touch-action:manipulation;-webkit-tap-highlight-color:transparent
 @keyframes rise{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
 
 /* ---------- home: strip ---------- */
-.strip{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:14px}
-.strip .ind{position:absolute;top:0;bottom:0;left:0;width:calc((100% - 36px)/7);border-radius:16px;
+.strip{position:relative;display:grid;grid-template-columns:repeat(var(--cols,7),minmax(0,1fr));gap:6px;margin-bottom:14px}
+.strip .ind{position:absolute;top:0;bottom:0;left:0;width:calc((100% - (var(--cols,7) - 1) * 6px)/var(--cols,7));border-radius:16px;
   background:linear-gradient(160deg,var(--c),var(--c2));box-shadow:0 10px 22px -10px var(--c);
   transform:translateX(calc(var(--n,0) * (100% + 6px)));transition:transform .6s var(--spring),background .4s}
 .sd{position:relative;z-index:1;overflow:hidden;border-radius:16px;padding:9px 2px 10px;display:grid;justify-items:center;gap:3px;min-width:0;
@@ -1302,11 +1302,11 @@ function weekStart(iso){const w=dow(iso);return isoAdd(iso,w===0?-6:1-w)}
 
 /* ---------- views ---------- */
 function stripHTML(iso,cls){
-  const [,key]=dayKey(iso),S=SUBJ[key];const ws=weekStart(iso);let strip='',idx=0;
-  for(let i=0;i<7;i++){const d=isoAdd(ws,i),ok=PLAN[d];if(d===iso)idx=i;const k=ok?dayKey(d)[1]:'rev';
+  const [,key]=dayKey(iso),S=SUBJ[key];const ws=weekStart(iso);let strip='',idx=0,cols=0;
+  for(let i=0;i<7;i++){const d=isoAdd(ws,i),ok=PLAN[d];if(!ok)continue;if(d===iso)idx=cols;cols++;const k=dayKey(d)[1];
     strip+=`<button class="sd ${d===TODAY?'is-today':''}" data-day="${d}" ${ok?'':'disabled'} aria-current="${d===iso}" style="--dc:${SUBJ[k].c}">
       <small>${DSH[dow(d)]}</small><b>${+d.slice(8)}</b><span class="dot"></span><span class="pr"><i ${ok?`data-bar="day:${d}"`:''} style="width:0"></i></span></button>`}
-  return `<div class="strip ${cls||'stag'}" style="--i:0;--n:${idx};--c:${S.c};--c2:${S.c2}"><span class="ind"></span>${strip}</div>`;
+  return `<div class="strip ${cls||'stag'}" style="--i:0;--cols:${cols||7};--n:${idx};--c:${S.c};--c2:${S.c2}"><span class="ind"></span>${strip}</div>`;
 }
 function viewToday(){return stripHTML(ui.sel)+'<p class="swipe-hint">← swipe කරලා දවස් මාරු කරන්න →</p><div id="dayBody">'+dayBodyHTML(ui.sel)+'</div>'}
 function dayBodyHTML(iso){
@@ -1465,7 +1465,7 @@ function goDay(d){d=clampDay(d);
     const bi=document.querySelector('.bnav [data-tab="today"] .bi');if(bi){bi.classList.remove('bounce');void bi.offsetWidth;bi.classList.add('bounce')}return}
   if(d===ui.sel)return;const dir=d>ui.sel?1:-1,same=weekStart(d)===weekStart(ui.sel);ui.sel=d;
   const strip=document.querySelector('.strip');
-  if(same&&strip){const S=SUBJ[dayKey(d)[1]];strip.style.setProperty('--n',(dow(d)+6)%7);strip.style.setProperty('--c',S.c);strip.style.setProperty('--c2',S.c2);
+  if(same&&strip){const S=SUBJ[dayKey(d)[1]];strip.style.setProperty('--n',Math.max(0,[...strip.querySelectorAll('.sd')].findIndex(b=>b.dataset.day===d)));strip.style.setProperty('--c',S.c);strip.style.setProperty('--c2',S.c2);
     strip.querySelectorAll('.sd').forEach(b=>b.setAttribute('aria-current',b.dataset.day===d))}
   else if(strip){strip.outerHTML=stripHTML(d,dir>0?'in-r':'in-l')}
   const body=document.getElementById('dayBody');body.innerHTML=dayBodyHTML(d);body.classList.remove('in-r','in-l');void body.offsetWidth;body.classList.add(dir>0?'in-r':'in-l');
