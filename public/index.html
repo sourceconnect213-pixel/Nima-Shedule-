@@ -367,7 +367,7 @@ button,.sd,.nb{touch-action:manipulation;-webkit-tap-highlight-color:transparent
 .fold .chev{color:var(--muted);display:grid;place-items:center;transition:transform .4s var(--spring)}
 .fold[open] .chev{transform:rotate(180deg)}
 .frows{padding:0 10px 12px;display:grid;gap:2px}
-.crow{display:grid;grid-template-columns:32px minmax(0,1fr) 28px;gap:8px;align-items:center;padding:6px 2px;border-top:1px solid var(--surface-2);font-size:14px;line-height:1.45}
+.crow{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:6px 2px;border-top:1px solid var(--surface-2);font-size:14px;line-height:1.45}
 .crow .chk,.crow .chk .cs{width:30px;height:30px}
 .crow .ct>span{background:linear-gradient(currentColor,currentColor) no-repeat 0 58%/0% 1.4px;transition:background-size .5s var(--ease),color .3s}
 .crow.done .ct>span{background-size:100% 1.4px;color:var(--muted)}
@@ -376,6 +376,26 @@ button,.sd,.nb{touch-action:manipulation;-webkit-tap-highlight-color:transparent
 .cdel{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;color:var(--muted);opacity:.55;transition:opacity .2s,background .2s}
 .cdel:hover{opacity:1;background:var(--surface-2)}
 .cadd{display:flex;gap:8px;margin-top:8px}
+.fhint{margin:10px 2px 0!important;font-size:12px}
+.cplay{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,var(--c,var(--accent)),var(--c2,var(--accent)));
+  box-shadow:0 6px 16px -8px var(--c,var(--accent));transition:transform .25s var(--spring)}
+.cplay svg{width:15px;height:15px;margin-left:2px}.cplay:active{transform:scale(.9)}
+.crow.done .cplay{opacity:.6}
+html.vp-lock,html.vp-lock body{overflow:hidden}
+.vp{position:fixed;inset:0;z-index:240;display:grid;place-items:center;padding:12px;background:rgba(8,10,24,.78);backdrop-filter:blur(6px);
+  opacity:0;transition:opacity .25s var(--ease)}
+.vp.on{opacity:1}
+.vp-card{width:min(960px,100%);max-height:100%;overflow:auto;border-radius:22px;background:var(--surface);color:var(--fg);padding:12px;
+  box-shadow:0 30px 80px -20px rgba(0,0,0,.6);transform:translateY(14px) scale(.98);transition:transform .35s var(--spring)}
+.vp.on .vp-card{transform:none}
+.vp-top{display:flex;align-items:flex-start;gap:10px;padding:4px 4px 10px}
+.vp-t{flex:1;min-width:0}.vp-t small{display:block;font-size:12px;color:var(--muted);line-height:1.5}.vp-t b{display:block;font-size:15.5px;line-height:1.45}
+.vp-x{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);flex:none}.vp-x svg{width:18px;height:18px}
+.vp-frame{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000}
+.vp-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vp-bar{display:grid;grid-template-columns:auto 1fr auto;gap:8px;margin-top:10px}.vp-bar .btn{justify-content:center;white-space:nowrap}
+.vp-bar .btn svg{width:16px;height:16px}.vp-bar .btn.ok{background:var(--ok);color:#fff;border-color:transparent}
+.vp-note{margin:10px 4px 2px;font-size:12.5px;color:var(--muted);line-height:1.55}.vp-note a{color:var(--c);font-weight:700}
 .cadd .inp{flex:1;min-width:0;height:38px;font-size:13.5px}
 .cadd .btn{flex:none}
 .fdel{margin-top:8px}
@@ -1145,8 +1165,11 @@ const CUR_RAW={
   ['dq','පරණ Daily Quiz · 106 (MCQ 5)',null,'dq']
  ],
  dip:[
-  ...[1,2,3,4,5,6,7].map(n=>['l0'+n,'Lesson 0'+n,['Recording — පැය 2:30','Recording ඉතිරි විනාඩි 30','Notes + පාඩම් + Short Notes']]),
-  ['rev','Diploma Revision · Lessons 01–07',['Lessons 01–07 Revision / Pending Recordings','Short Notes Review','පරණ පාඩම් Revision / Practice'],'R']
+  /* recordings to watch, Free Lessons first then Live Lectures (v = Vimeo video id) */
+  ['m1','Fundamental of ICT & Computer Hardware',[{ti:'Free Lesson 01 · Introduction to IT',v:'1077911640'},{ti:'Free Lesson 02 · Computer System',v:'1077912515'},{ti:'Free Lesson 03 · Process of Computer',v:'1077911119'},{ti:'Free Lesson 04 · Internet Process',v:'1077913304'},{ti:'Free Lesson 05 · Software',v:'1077913424'},{ti:'Free Lesson 06 · Data Communication & Computer Networking',v:'1077912933'},{ti:'Free Lesson 07 · Subject Introduction',v:'1079268649'},{ti:'Free Lesson 08 · Introduction and Input/Output Devices',v:'1084217730'},{ti:'Free Lesson 09 · Storage Devices, Data Cables and Ports',v:'1084542291'},{ti:'Free Lesson 10 · Motherboard Components',v:'1084634084'},{ti:'Free Lesson 11 · History of Computer',v:'1087015900'},{ti:'Free Lesson 12 · RAM & Processor',v:'1087392084'},{ti:'Live Lecture · April 03, 2026',v:'1180045565'},{ti:'Live Lecture · April 04, 2026',v:'1180142910'},{ti:'Live Lecture · April 10, 2026',v:'1182053367'},{ti:'Live Lecture · April 11, 2026',v:'1182261647'},{ti:'Live Lecture · April 18, 2026',v:'1184587072'},{ti:'Live Lecture · April 24, 2026',v:'1186513937'},{ti:'Live Lecture · April 25, 2026',v:'1186572507'},{ti:'Live Lecture · April 26, 2026',v:'1186643130'}]],
+  ['m2','MS Office Application',[{ti:'Free Lesson 00 · Introduction',v:'1095506763'},{ti:'Free Lesson 01',v:'1095523245'},{ti:'Free Lesson 02',v:'1095542407'},{ti:'Free Lesson 03',v:'1095565607'},{ti:'Free Lesson 04',v:'1096172116'},{ti:'Free Lesson 05',v:'1096228961'},{ti:'Free Lesson 06',v:'1096230199'},{ti:'Free Lesson 07',v:'1096467092'},{ti:'Free Lesson 08',v:'1099259527'},{ti:'Free Lesson 09',v:'1099265263'},{ti:'Free Lesson 10',v:'1099322220'},{ti:'Free Lesson 11',v:'1099357281'},{ti:'Free Lesson 12',v:'1099936748'},{ti:'Free Lesson 13',v:'1100268734'},{ti:'Free Lesson 14',v:'1101752738'},{ti:'Free Lesson 15',v:'1101759307'},{ti:'Free Lesson 16',v:'1103180940'},{ti:'Live Lecture · May 08, 2026',v:'1190702769'},{ti:'Live Lecture · May 09, 2026',v:'1190858236'},{ti:'Live Lecture · May 15, 2026',v:'1192644982'},{ti:'Live Lecture · May 16, 2026',v:'1192868622'},{ti:'Live Lecture · May 22, 2026',v:'1194804020'},{ti:'Live Lecture · May 23, 2026',v:'1195072831'},{ti:'Live Lecture · May 29, 2026',v:'1197058321'},{ti:'Live Lecture · June 01, 2026',v:'1197441227'}]],
+  ['m3','Programming Fundamental',[{ti:'Live Lecture · June 05, 2026',v:'1198836807'},{ti:'Live Lecture · June 06, 2026',v:'1199440557'},{ti:'Live Lecture · June 12, 2026',v:'1200975293'},{ti:'Live Lecture · June 13, 2026',v:'1201115331'},{ti:'Live Lecture · June 19, 2026',v:'1203165059'},{ti:'Live Lecture · June 20, 2026',v:'1203153870'}]],
+  ['m4','Fundamental of Database Management',[{ti:'Free Lesson 01',v:'1141965882'},{ti:'Free Lesson 02',v:'1141966640'},{ti:'Free Lesson 03',v:'1141986659'},{ti:'Free Lesson 04',v:'1195588278'},{ti:'Free Lesson 05',v:'1195589724'},{ti:'Live Lecture · July 10, 2026',v:'1209004803'},{ti:'Live Lecture · July 11, 2026',v:'1209164827'},{ti:'Live Lecture · July 17, 2026',v:'1210979641'},{ti:'Live Lecture · July 18, 2026',v:'1211118939'},{ti:'Live Lecture · July 25, 2026',v:'1212983302'},{ti:'Live Lecture · July 26, 2026',v:'1213152884'},{ti:'Live Lecture · July 31, 2026',v:'1214649574'},{ti:'Live Lecture · August 02, 2026',v:'1215352998'}]]
  ]
 };
 /* MCQ batches: Day Papers 3 at a time (33), Daily Quiz 5 at a time (106) */
@@ -1154,7 +1177,7 @@ const mcqBatches=(tot,per,f,unit)=>{const o=[];for(let a=1;a<=tot;a+=per){const 
   o.push({ti:unit+' #'+a+(b>a?'–#'+b:'')+' (short explain)',mc:{[f]:n}})}return o};
 const CUR={};
 for(const s of Object.keys(CUR_RAW)){CUR[s]=CUR_RAW[s].map(([lid,n,list,tag])=>{const id='c-'+s+'-'+lid;
-  const items=list?list.map(ti=>({ti})):lid==='dp'?mcqBatches(33,3,'c','Day Papers'):mcqBatches(106,5,'d','Daily Quiz');
+  const items=list?list.map(x=>typeof x==='string'?{ti:x}:x):lid==='dp'?mcqBatches(33,3,'c','Day Papers'):mcqBatches(106,5,'d','Daily Quiz');
   return {id,s,n,tag:tag==='R'?'L':(tag||'L'),rev:tag==='R',tasks:items.map((x,i)=>Object.assign({id:id+'-'+(i+1),s,l:id},x))}})}
 const CSUBJ=['sft','et','ict','dip'];
 /* which folders a weekday shows: [subject, tag] — L = lessons, dp = old Day Papers, dq = old Daily Quiz */
@@ -1164,7 +1187,7 @@ function curOf(s){const ch=state.ch,cx=state.cx;
   const out=CUR[s].filter(L=>!ch[L.id]).map(L=>Object.assign({},L,{tasks:L.tasks.filter(t=>!ch[t.id])}));
   cx.l.filter(l=>l&&l.s===s&&!ch[l.id]).forEach(l=>{const L={id:l.id,s,n:l.n,tag:'L',cu:1,tasks:[]};
     const r=out.findIndex(x=>x.rev);if(r<0)out.push(L);else out.splice(r,0,L)});
-  cx.t.forEach(t=>{if(!t||ch[t.id])return;const L=out.find(x=>x.id===t.l);if(L)L.tasks.push({id:t.id,s,l:t.l,ti:t.ti,cu:1})});
+  cx.t.forEach(t=>{if(!t||ch[t.id])return;const L=out.find(x=>x.id===t.l);if(L)L.tasks.push({id:t.id,s,l:t.l,ti:t.ti,v:t.v||'',cu:1})});
   return out}
 const curTasks=(s,tag)=>curOf(s).filter(L=>!tag||L.tag===tag).flatMap(L=>L.tasks);
 const allCurTasks=()=>CSUBJ.flatMap(s=>curTasks(s));
@@ -1192,6 +1215,7 @@ const IC={
   moon:sv('<path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/>'),
   tools:sv('<path d="M14.7 6.3a4 4 0 0 0 5 5L10 21a2.1 2.1 0 0 1-3-3z"/><path d="M14.7 6.3 18 3l3 3-3.3 3.3"/>'),
   lock:sv('<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>'),
+  play:sv('<path d="M8 5.5v13l11-6.5z"/>',1),
   folder:sv('<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.5h7.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/>'),
   plus:sv('<path d="M12 5v14M5 12h14"/>'),x:sv('<path d="M6 6l12 12M18 6 6 18"/>'),check:sv('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
   skip:sv('<path d="M4 12h13M13 6l6 6-6 6"/><path d="M20 5v14" opacity=".5"/>'),
@@ -1382,8 +1406,47 @@ function foldersHTML(s,tag,o){o=o||{};const S=SUBJ[s],Ls=curOf(s).filter(L=>!tag
 /* one lesson task as a tickable row */
 function crowHTML(t,o){o=o||{};const dn=state.cd[t.id];/* o.hint: small line under an unfinished task */
   return `<div class="crow ${dn?'done':''}" data-cid="${t.id}">${chkC(t.id,dn).replace('<button class="chk"',o.locked?'<button disabled class="chk"':'<button class="chk"')}
-    <span class="ct"><span>${esc(t.ti)}</span>${dn?`<small>${typeof dn==='string'?fmt(dn)+' ':''}ඉවර කළා</small>`:o.hint?`<small class="nxl">${o.hint}</small>`:''}</span>
+    <span class="ct"><span>${esc(t.ti)}</span>${dn?`<small>${typeof dn==='string'?fmt(dn)+' ':''}${t.v?'බැලුවා':'ඉවර කළා'}</small>`:o.hint?`<small class="nxl">${o.hint}</small>`:''}</span>
+    ${t.v&&vidOf(t.v)?`<button class="cplay" data-play="${t.id}" aria-label="${esc(t.ti)} play කරන්න">${IC.play}</button>`:''}
     ${o.nodel?'':`<button class="cdel" data-cdel="${t.id}" aria-label="ඉවත් කරන්න">${IC.x.replace('<svg','<svg width="15" height="15"')}</button>`}</div>`}
+/* ---------- recordings: a task with v (Vimeo id / Vimeo or YouTube link) gets a ▶ button and plays in the app ---------- */
+function vidOf(v){v=String(v||'').trim();if(!v)return null;let m;
+  if(/^\d{5,}$/.test(v))return {embed:'https://player.vimeo.com/video/'+v+'?autoplay=1&dnt=1&title=0&byline=0&portrait=0',open:'https://vimeo.com/'+v+'?fl=pl&fe=cm',src:'Vimeo'};
+  if(m=v.match(/vimeo\.com\/(?:video\/|.*\/)?(\d{5,})(?:\/([0-9a-f]{6,}))?/i))return {embed:'https://player.vimeo.com/video/'+m[1]+'?autoplay=1&dnt=1&title=0&byline=0&portrait=0'+(m[2]?'&h='+m[2]:''),open:v,src:'Vimeo'};
+  if(m=v.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/i))return {embed:'https://www.youtube-nocookie.com/embed/'+m[1]+'?autoplay=1&rel=0',open:'https://www.youtube.com/watch?v='+m[1],src:'YouTube'};
+  if(/^https?:\/\//i.test(v))return {embed:null,open:v,src:'link'};return null}
+/* pull a link out of what was typed in "add a task": "Title https://…" → title + link */
+function splitLink(txt){const m=txt.match(/https?:\/\/\S+/i);if(!m)return {ti:txt,v:''};
+  const ti=txt.replace(m[0],'').replace(/[\s|–—:-]+$/,'').replace(/^[\s|–—:-]+/,'').trim();return {ti:ti||'Recording',v:m[0]}}
+let VP=null;   // {id, lid}
+function playList(lid){const L=lessonOf(lid);return L?L.tasks.filter(t=>vidOf(t.v)):[]}
+function openPlayer(id){const t=allCurTasks().find(x=>x.id===id);if(!t)return;const v=vidOf(t.v);if(!v)return;
+  if(!v.embed){window.open(v.open,'_blank','noopener');return}
+  VP={id,lid:t.l};const L=lessonOf(t.l),list=playList(t.l),k=list.findIndex(x=>x.id===id);
+  let el=document.getElementById('vp');
+  if(!el){el=document.createElement('div');el.id='vp';el.className='vp';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el)}
+  el.style.setProperty('--c',SUBJ[t.s].c);el.style.setProperty('--c2',SUBJ[t.s].c2);
+  el.innerHTML=`<div class="vp-card">
+    <div class="vp-top"><div class="vp-t"><small>${L?esc(L.n):''} · ${k+1}/${list.length}</small><b>${esc(t.ti)}</b></div>
+      <button class="vp-x" data-vp="close" aria-label="වහන්න">${IC.x}</button></div>
+    <div class="vp-frame"><iframe src="${v.embed}" title="${esc(t.ti)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <div class="vp-bar"><button class="btn sm" data-vp="prev" ${k>0?'':'disabled'}>${IC.left}කලින්</button>
+      <button class="btn sm ${state.cd[id]?'ok':'pri'}" data-vp="done">${state.cd[id]?'බැලුවා ✓':'බලලා ඉවරයි ✓'}</button>
+      <button class="btn sm" data-vp="next" ${k<list.length-1?'':'disabled'}>ඊළඟ${IC.right}</button></div>
+    <p class="vp-note">Video එක මෙතන play නොවුණොත් <a href="${esc(v.open)}" target="_blank" rel="noopener">${v.src} එකේ open කරන්න ↗</a></p>
+  </div>`;
+  el.hidden=false;requestAnimationFrame(()=>el.classList.add('on'));document.documentElement.classList.add('vp-lock');vib(8)}
+function closePlayer(){const el=document.getElementById('vp');if(!el||el.hidden)return;el.classList.remove('on');
+  const f=el.querySelector('iframe');if(f)f.src='about:blank';document.documentElement.classList.remove('vp-lock');VP=null;
+  setTimeout(()=>{el.hidden=true;el.innerHTML=''},260)}
+document.addEventListener('click',e=>{const p=e.target.closest('[data-play]');if(p){e.preventDefault();e.stopPropagation();openPlayer(p.dataset.play);return}
+  const b=e.target.closest('[data-vp]');if(!b||!VP)return;const a=b.dataset.vp;
+  if(a==='close'){closePlayer();return}
+  if(a==='done'){const id=VP.id;ctoggle(id,null);const on=!!state.cd[id];b.className='btn sm '+(on?'ok':'pri');b.textContent=on?'බැලුවා ✓':'බලලා ඉවරයි ✓';
+    if(on){const list=playList(VP.lid),k=list.findIndex(x=>x.id===id);if(k>-1&&k<list.length-1)toast('ඉවරයි ✓','ඊළඟ recording එකට යන්න "ඊළඟ" ඔබන්න','▶')}return}
+  if(a==='prev'||a==='next'){const list=playList(VP.lid),k=list.findIndex(x=>x.id===VP.id),n=list[k+(a==='next'?1:-1)];if(n)openPlayer(n.id)}},true);
+document.addEventListener('click',e=>{const el=document.getElementById('vp');if(el&&!el.hidden&&e.target===el)closePlayer()});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&VP){e.stopImmediatePropagation();closePlayer()}},true);
 /* the day's share of a subject's lesson work: what is left at the start of that day, spread evenly over that
    subject's days still to come (that day included). Done-that-day tasks + the next unfinished ones up to the target. */
 function lessonDays(s){return [1,2,3,4,5,6,0].filter(w=>(DAYFOLD[w]||[]).some(f=>f[0]===s&&f[1]==='L'))}
@@ -1412,7 +1475,8 @@ function folderBody(L){const nt=L.tasks.find(t=>!state.cd[t.id]);
   return `<div class="fdsum">${ringSVG('fold:'+L.id,'big',SUBJ[L.s].c)}<div><b><span data-frac="fold:${L.id}">0/${L.tasks.length}</span> වැඩ ඉවරයි</b>
       <small>${nt?'ඊළඟට: '+esc(nt.ti):'මේ පාඩම ඉවරයි 🎉'}</small><small>${SUBJ[L.s].n} · ${L.cu?'මම add කළ පාඩමක්':'පිළිවෙලට කරගෙන යන්න'}</small></div></div>
     <div class="frows">${L.tasks.map(t=>crowHTML(t,{hint:t===nt?'මෙතනින් පටන් ගන්න':''})).join('')||'<p class="hint fempty">මේ පාඩමේ වැඩ නෑ. පහළින් add කරන්න.</p>'}</div>
-    <form class="cadd" data-cadd="${L.id}"><input class="inp" maxlength="140" placeholder="මේ පාඩමට වැඩක් add කරන්න…" aria-label="${esc(L.n)} පාඩමට වැඩක්"><button class="btn sm" type="submit">${IC.plus}Add</button></form>
+    <p class="hint fhint">Recording එකක් නම් නම එක්ක Vimeo / YouTube link එකත් paste කරන්න — ▶ එකෙන් මෙතනම play වෙනවා.</p>
+    <form class="cadd" data-cadd="${L.id}"><input class="inp" maxlength="500" placeholder="වැඩක් / Recording link එකක් add කරන්න…" aria-label="${esc(L.n)} පාඩමට වැඩක්"><button class="btn sm" type="submit">${IC.plus}Add</button></form>
     ${L.cu?`<button class="btn sm dng fdel" data-cdel="${L.id}">${IC.trash}මේ පාඩම ඉවත් කරන්න</button>`:''}`}
 function openFolder(lid){const L=lessonOf(lid);if(!L)return;const S=SUBJ[L.s];
   openSheet({title:esc(L.n),c:S.c,c2:S.c2,body:`<div id="fdBody">${folderBody(L)}</div>`,onClose:()=>{fdId=null;render(true)}});fdId=lid;
@@ -1670,7 +1734,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('submit',e=>{const f=e.target.closest('[data-cadd]');if(!f)return;e.preventDefault();
   const inp=f.querySelector('input'),v=inp.value.trim();if(!v){shake(inp);inp.focus();return}
-  state.cx.t.push({id:uid('cx-'),l:f.dataset.cadd,ti:v.slice(0,140)});changed(false);if(fdId)repaintFolder(true);else render(true);toast('වැඩේ add කළා',v,'＋');vib([10,30,16])});
+  const sp=splitLink(v);state.cx.t.push({id:uid('cx-'),l:f.dataset.cadd,ti:sp.ti.slice(0,140),v:sp.v.slice(0,400)});changed(false);if(fdId)repaintFolder(true);else render(true);toast('වැඩේ add කළා',v,'＋');vib([10,30,16])});
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.matches&&d.matches('details[data-fold]'))ui.fold[d.dataset.fold]=d.open},true);
 document.getElementById('collapse').addEventListener('click',()=>{ui.collapsed=!ui.collapsed;document.getElementById('app').dataset.collapsed=ui.collapsed;saveUi()});
 document.getElementById('neo').addEventListener('click',()=>{ui.skin=effSkin()==='light'?'dark':'light';saveUi();applySkin()});
