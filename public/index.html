@@ -1332,14 +1332,11 @@ function toggle(id,btn){
     if(host){host.classList.remove('pop');void host.offsetWidth;host.classList.add('pop')}setTimeout(()=>{node.remove();host&&host.classList.remove('pop')},760)}
   refresh();
   if(on&&ui.tab==='today')streakPulse();
-  /* the old-work lock depends on the day's current work: redraw once the tick has settled */
-  if(ui.tab==='today'&&document.querySelector('#dayBody .lockc, #dayBody .fsec')){clearTimeout(ctT);ctT=setTimeout(()=>{if(!fdId)render(true)},900)}
 }
 
 /* ---------- lesson-folder ticks ---------- */
 let ctT=null;
 function ctoggle(id,btn){const on=!state.cd[id];
-  if(on){const g=gateToday();if(g.length){toast('මුලින්ම අද වැඩ ඉවර කරන්න',`අද කරන්න තව වැඩ ${g.length}ක් ඉතුරුයි: ${g.slice(0,2).map(t=>t.ti).join(' · ')}${g.length>2?' …':''}. ඒවා ඉවර කළාම පරණ වැඩ tick කරන්න පුළුවන්.`,'🔒');shake(btn&&btn.closest('.crow'));return}}
   if(on)state.cd[id]=clampDay(todayISO());else delete state.cd[id];changed(false);vib(on?[12,40,22]:8);
   document.querySelectorAll('[data-cid="'+id+'"]').forEach(el=>{if(el.classList.contains('chk'))el.setAttribute('aria-pressed',on);else el.classList.toggle('done',on)});
   if(on&&btn){const host=btn.closest('.crow');const bs=document.createElement('span');bs.innerHTML=BURST;const node=bs.firstChild;btn.appendChild(node);
@@ -1387,10 +1384,9 @@ function crowHTML(t,o){o=o||{};const dn=state.cd[t.id];
     ${o.nodel?'':`<button class="cdel" data-cdel="${t.id}" aria-label="ඉවත් කරන්න">${IC.x.replace('<svg','<svg width="15" height="15"')}</button>`}</div>`}
 /* inside a folder */
 let fdId=null;
-function folderBody(L){const nt=L.tasks.find(t=>!state.cd[t.id]),g=gateToday();
+function folderBody(L){const nt=L.tasks.find(t=>!state.cd[t.id]);
   return `<div class="fdsum">${ringSVG('fold:'+L.id,'big',SUBJ[L.s].c)}<div><b><span data-frac="fold:${L.id}">0/${L.tasks.length}</span> වැඩ ඉවරයි</b>
       <small>${nt?'ඊළඟට: '+esc(nt.ti):'මේ පාඩම ඉවරයි 🎉'}</small><small>${SUBJ[L.s].n} · ${L.cu?'මම add කළ පාඩමක්':'පිළිවෙලට කරගෙන යන්න'}</small></div></div>
-    ${g.length?`<div class="lockc"><span class="lk">${IC.lock}</span><div><b>පරණ වැඩ lock වෙලා</b><small>අද කරන්න වැඩ ${g.length}ක් තව ඉතුරුයි (${g.map(t=>esc(t.ti)).join(' · ')}). ඒවා ඉවර කළාම මෙතන tick කරන්න පුළුවන්.</small></div></div>`:''}
     <div class="frows">${L.tasks.map(t=>crowHTML(t,{hint:t===nt?'මෙතනින් පටන් ගන්න':''})).join('')||'<p class="hint fempty">මේ පාඩමේ වැඩ නෑ. පහළින් add කරන්න.</p>'}</div>
     <form class="cadd" data-cadd="${L.id}"><input class="inp" maxlength="140" placeholder="මේ පාඩමට වැඩක් add කරන්න…" aria-label="${esc(L.n)} පාඩමට වැඩක්"><button class="btn sm" type="submit">${IC.plus}Add</button></form>
     ${L.cu?`<button class="btn sm dng fdel" data-cdel="${L.id}">${IC.trash}මේ පාඩම ඉවත් කරන්න</button>`:''}`}
@@ -1407,8 +1403,6 @@ function dayQuota(iso,tag){const T=curTasks('ict',tag),wd=QDAYS[tag],today=clamp
   let k=0;for(let d=today;d<iso;d=isoAdd(d,1))if(wd.includes(dow(d)))k++;
   if(wd.includes(dow(today))&&T.some(t=>state.cd[t.id]===today))k--;   // today's batch is already done
   return undone.slice(k,k+1)}
-/* old work waits until the day's current work is done (the Daily Quiz is not part of it: it's done at night) */
-const gateToday=()=>{const P=PLAN[clampDay(todayISO())];return P?P.tasks.filter(t=>!t.fx&&t.k!=='rest'&&t.k!=='daily'&&!state.done[t.id]):[]};
 
 /* ---------- pieces ---------- */
 const apTxt=ap=>ap==='am'?'පෙ.ව.':ap==='pm'?'ප.ව.':'';
@@ -1479,20 +1473,16 @@ function dayBodyHTML(iso){
   ${todo.length?`<h3 class="dsec stag" style="--i:${i++}">${IC.now}අද කරන්න<small>අදම ඉවර කරන්න · වෙලාවක් නෑ</small></h3><div class="tl">${todo.map(t=>taskCard(t,i++)).join('')}</div>`:''}
   ${oldWorkHTML(iso,work,folds,i)}`;
 }
-/* old work (lesson folders + that day's old ICT papers) opens only after the day's current work is done.
-   The Daily Quiz is not part of the gate (it's done at night). */
+/* old work (lesson folders + that day's old ICT papers): done alongside the day's current work, at your own pace */
 function oldWorkHTML(iso,work,folds,i){
   if(!folds.length)return '';
-  const gate=work.filter(t=>t.k!=='daily'&&!state.done[t.id]),locked=iso>=TODAY&&gate.length>0;
   const quota=folds.filter(f=>f[1]!=='L').flatMap(([s,tag])=>dayQuota(iso,tag).map(t=>({t,tag})));
   const lessons=folds.filter(f=>f[1]==='L');
-  return `<h3 class="dsec stag" style="--i:${i++}">${IC.old}පරණ වැඩ<small>${locked?'අද කරන්න වැඩ ඉවර කළාම open වෙනවා':'අද කරන්න ඕන කොටස අදම; පාඩම් ඔයාට පුළුවන් තරම්'}</small></h3>
-  ${locked?`<div class="lockc stag" style="--i:${i++}"><span class="lk">${IC.lock||'🔒'}</span><div><b>මුලින්ම "අද කරන්න" වැඩ ${gate.length} ඉවර කරන්න</b>
-    <small>${gate.map(t=>esc(t.ti)).join(' · ')}</small><small>ඒවා ඉවර කළාම පරණ වැඩ ටික මෙතන open වෙනවා. (Daily Quiz එක රෑට කරන්න පුළුවන්.)</small></div></div>`:''}
-  ${quota.length?`<section class="fsec qsec stag ${locked?'locked':''}" style="--i:${i++};--c:${SUBJ.ict.c};--c2:${SUBJ.ict.c2}">
+  return `<h3 class="dsec stag" style="--i:${i++}">${IC.old}පරණ වැඩ<small>දැන් වැඩත් එක්කම කරගෙන යන්න</small></h3>
+  ${quota.length?`<section class="fsec qsec stag" style="--i:${i++};--c:${SUBJ.ict.c};--c2:${SUBJ.ict.c2}">
     <div class="fs-h"><span class="ico">${IC.daily}</span><div><h3>අද කරන්න ඕන පරණ Papers</h3><small>${quota.map(q=>q.tag==='dp'?'Day Papers':'Daily Quiz').filter((x,k,a)=>a.indexOf(x)===k).join(' + ')} · මේ ටික අදම ඉවර කරන්න</small></div></div>
-    <div class="frows">${quota.map(({t})=>crowHTML(t,{locked,nodel:1,hint:'අදම ඉවර කරන්න'})).join('')}</div></section>`:''}
-  ${lessons.map(([s])=>foldersHTML(s,'L',{i:i++,locked})).join('')}`;
+    <div class="frows">${quota.map(({t})=>crowHTML(t,{nodel:1,hint:'අදම ඉවර කරන්න'})).join('')}</div></section>`:''}
+  ${lessons.map(([s])=>foldersHTML(s,'L',{i:i++})).join('')}`;
 }
 function dayActionsHTML(iso,work){const open=work.filter(t=>!state.done[t.id]).length;
   return `<div class="dact stag" style="--i:1"><button class="btn" data-act="add" data-date="${iso}">${IC.plus}වැඩක් add කරන්න</button>
